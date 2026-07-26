@@ -212,6 +212,9 @@ async function getClient(){
   supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
   return supabase;
 }
+function usuarioToEmail(usuario){
+  return (usuario || '').trim().toLowerCase().replace(/\s+/g, '') + '@ingeproyect.local';
+}
 
 // ---- Datos de ejemplo para MODO_DEMO (viven solo en este navegador) ----
 const demoDB = {
@@ -308,10 +311,14 @@ function fmtDate(d){ return d || '—'; }
 let trabajadorActivo = null;
 
 // ---- Capa de datos ----
+// El acceso ahora lo valida Supabase Auth (contraseñas ya no viven en texto plano en la tabla).
+// Tras iniciar sesión con éxito, se busca el perfil del trabajador por su nombre de usuario.
 async function buscarTrabajador(usuario, clave){
   if (MODO_DEMO) return demoDB.trabajadores.find(w => w.usuario === usuario && w.clave === clave) || null;
   const c = await getClient();
-  const { data, error } = await c.from('trabajadores').select('*').eq('usuario', usuario).eq('clave', clave).maybeSingle();
+  const { data: authData, error: authError } = await c.auth.signInWithPassword({ email: usuarioToEmail(usuario), password: clave });
+  if (authError || !authData.session) return null;
+  const { data, error } = await c.from('trabajadores').select('*').eq('usuario', usuario).maybeSingle();
   if (error) { console.error(error); return null; }
   return data;
 }
@@ -488,9 +495,10 @@ async function intentarLogin(){
 document.getElementById('loginBtn').addEventListener('click', intentarLogin);
 document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') intentarLogin(); });
 document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') intentarLogin(); });
-document.getElementById('btnLogout').addEventListener('click', () => {
+document.getElementById('btnLogout').addEventListener('click', async () => {
   sessionStorage.removeItem('ingeproyect_app_trab');
   trabajadorActivo = null;
+  if (!MODO_DEMO){ const c = await getClient(); await c.auth.signOut(); }
   document.getElementById('appLayout').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
 });

@@ -128,6 +128,9 @@ async function getClient(){
   supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
   return supabase;
 }
+function usuarioToEmail(usuario){
+  return (usuario || '').trim().toLowerCase().replace(/\s+/g, '') + '@ingeproyect.local';
+}
 function escapeHtml(s){
   return (s === null || s === undefined ? '' : String(s))
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -144,7 +147,9 @@ async function buscarClientePorUsuario(usuario, clave){
     return null;
   }
   const c = await getClient();
-  const { data, error } = await c.from('clientes').select('*').eq('usuario', usuario).eq('clave', clave).maybeSingle();
+  const { data: authData, error: authError } = await c.auth.signInWithPassword({ email: usuarioToEmail(usuario), password: clave });
+  if (authError || !authData.session) return null;
+  const { data, error } = await c.from('clientes').select('*').eq('usuario', usuario).maybeSingle();
   if (error) { console.error(error); return null; }
   return data;
 }

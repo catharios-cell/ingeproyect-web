@@ -142,7 +142,7 @@
       <li><button data-view="inventario">📦 Inventario</button></li>
       <li><button data-view="trabajadores">🧑‍🔧 Trabajadores</button></li>
     </ul>
-    <div class="sb-foot"><a href="index.html">← Volver al sitio</a></div>
+    <div class="sb-foot"><a href="index.html">← Volver al sitio</a> · <a href="#" id="btnCerrarSesion">Cerrar sesión</a></div>
   </aside>
 
   <main class="main">
@@ -252,13 +252,14 @@
     <!-- INVENTARIO -->
     <section class="view" id="view-inventario">
       <div class="view-head">
-        <div><h1>Inventario</h1><p>Stock de materiales y repuestos para mantención de bombas y calderas</p></div>
+        <div><h1>Inventario</h1><p>Stock de materiales y repuestos, con valorización para control contable</p></div>
         <button class="btn btn-primary" id="btnNuevoProducto">＋ Nuevo producto</button>
       </div>
+      <div class="cards" style="margin-bottom:18px;"><div class="card"><div class="lbl">Valor total del inventario</div><div class="val" id="valorTotalInventario">—</div></div></div>
       <div class="search-bar"><input type="text" id="buscarInventario" placeholder="Buscar producto..."></div>
       <div class="panel" style="padding:0;overflow:hidden;">
-        <table><thead><tr><th>Producto</th><th>Categoría</th><th>Unidad</th><th>Stock</th><th>Stock mínimo</th><th></th><th></th></tr></thead>
-        <tbody id="inventarioBody"><tr class="empty-row"><td colspan="7">Cargando...</td></tr></tbody></table>
+        <table><thead><tr><th>Producto</th><th>Categoría</th><th>Unidad</th><th>Stock</th><th>Stock mínimo</th><th>Costo unitario</th><th>Valor en stock</th><th></th></tr></thead>
+        <tbody id="inventarioBody"><tr class="empty-row"><td colspan="8">Cargando...</td></tr></tbody></table>
       </div>
     </section>
 
@@ -349,9 +350,38 @@
       <div class="field"><label>Costo mano de obra estimado ($)</label><input type="number" id="qCostoManoObraEstimado"></div>
     </div>
 
+    <div style="font-size:12.5px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 10px;">Traslado (origen fijo: Curacaví)</div>
+    <p style="font-size:12.5px;color:#8b8478;margin:-4px 0 10px;">Vehículo asumido: camioneta Chevrolet Silverado 2020, bencina 95. Origen: Curacaví, Chile. Destino: dirección del cliente.</p>
+    <div class="form-row">
+      <div class="field"><label>Dirección de destino (cliente)</label><input type="text" id="qDestinoDireccion" placeholder="Se autocompleta con la dirección del cliente"></div>
+      <div class="field" style="align-self:end;"><button type="button" class="btn btn-ghost btn-sm" id="btnCalcularTraslado" style="width:100%;">Calcular distancia y costo de traslado</button></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Distancia ida (km) — editable</label><input type="number" id="qDistanciaKm" step="0.1"></div>
+      <div class="field"><label>Rendimiento (km/litro)</label><input type="number" id="qRendimientoKml" step="0.1" value="7.5"></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Precio combustible ($/litro)</label><input type="number" id="qPrecioCombustible" value="1200"></div>
+      <div class="field"><label>Costo TAG / peajes ($, ida y vuelta)</label><input type="number" id="qCostoTag" value="0"></div>
+    </div>
+    <div class="field"><label>Costo de traslado estimado ($)</label><input type="text" id="qCostoTrasladoDisplay" disabled value="—"></div>
+
+    <div style="font-size:12.5px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 10px;">Resumen de costos internos (no se muestran al cliente)</div>
+    <button type="button" class="btn btn-ghost btn-sm" id="btnCalcularResumen" style="margin-bottom:10px;">Calcular costo del servicio y generar opciones de precio</button>
+    <div class="cards" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px;">
+      <div class="card"><div class="lbl">Materiales</div><div class="val" id="resCostoMateriales">—</div></div>
+      <div class="card"><div class="lbl">Mano de obra</div><div class="val" id="resCostoManoObra">—</div></div>
+      <div class="card"><div class="lbl">Traslado</div><div class="val" id="resCostoTraslado">—</div></div>
+      <div class="card"><div class="lbl">Costo total del servicio</div><div class="val" id="resCostoTotal">—</div></div>
+    </div>
+
+    <div style="font-size:12.5px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 10px;">Opciones de precio (selecciona una)</div>
+    <div id="opcionesPrecioCot" class="cards" style="grid-template-columns:repeat(3,1fr);margin-bottom:8px;"></div>
+    <p style="font-size:12px;color:#8b8478;margin:0 0 10px;">Solo el valor de la opción seleccionada aparecerá en la cotización impresa para el cliente.</p>
+
     <div style="font-size:12.5px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 10px;">Condiciones comerciales</div>
     <div class="form-row">
-      <div class="field"><label>Valor total cotizado ($) *</label><input type="number" id="qMonto"></div>
+      <div class="field"><label>Valor total cotizado ($) *</label><input type="number" id="qMonto" readonly></div>
       <div class="field"><label>Validez de la oferta (días)</label><input type="number" id="qValidezDias" value="15"></div>
     </div>
     <div class="form-row">
@@ -398,6 +428,7 @@
       <select id="ajTipo"><option value="entrada">Entrada (compra / reposición)</option><option value="salida">Salida manual</option><option value="ajuste">Ajuste (dejar stock en un valor exacto)</option></select>
     </div>
     <div class="field"><label>Cantidad</label><input type="number" id="ajCantidad" placeholder="Cantidad (o valor final si es ajuste)"></div>
+    <div class="field"><label>Costo unitario de referencia ($)</label><input type="number" id="ajCostoReferencia" placeholder="Ej: 5000"></div>
     <div class="field"><label>Nota (opcional)</label><input type="text" id="ajNota" placeholder="Ej: Compra a proveedor XYZ"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" data-close="modalAjusteStock">Cancelar</button>
@@ -516,6 +547,25 @@ async function getClient(){
   const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
   supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
   return supabase;
+}
+// Cliente secundario, sin sesión persistida: se usa solo para crear cuentas de Auth de
+// trabajadores/clientes nuevos sin pisar la sesión del administrador que está logueado.
+let supabaseAdmin = null;
+async function getAdminClient(){
+  if (MODO_DEMO) return null;
+  if (supabaseAdmin) return supabaseAdmin;
+  const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+  supabaseAdmin = createClient(supabaseConfig.url, supabaseConfig.anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  return supabaseAdmin;
+}
+// Crea la cuenta de acceso (Supabase Auth) para un trabajador o cliente nuevo.
+// Devuelve el auth_user_id o null si no se pudo crear (por ejemplo, usuario duplicado).
+async function crearCuentaAcceso(usuario, clave){
+  if (MODO_DEMO || !usuario || !clave) return null;
+  const c = await getAdminClient();
+  const { data, error } = await c.auth.signUp({ email: usuarioToEmail(usuario), password: clave });
+  if (error){ console.error('No se pudo crear la cuenta de acceso:', error.message); return null; }
+  return data.user ? data.user.id : null;
 }
 
 // ---- Almacenamiento en memoria para MODO_DEMO ----
@@ -832,6 +882,7 @@ async function renderDashboard(){
   const pendientes = cotizaciones.filter(q => q.estado === 'pendiente');
   const totalFacturado = trabajos.reduce((sum, t) => sum + (Number(t.monto) || 0), 0);
   const stockBajo = inventario.filter(i => Number(i.stock) <= Number(i.stock_minimo || 0));
+  const valorInventario = inventario.reduce((s,i) => s + (Number(i.stock)||0) * (Number(i.costo_referencia)||0), 0);
 
   document.getElementById('dashCards').innerHTML = `
     <div class="card"><div class="lbl">Clientes</div><div class="val">${clientes.length}</div></div>
@@ -839,6 +890,7 @@ async function renderDashboard(){
     <div class="card"><div class="lbl">Trabajos registrados</div><div class="val">${trabajos.length}</div></div>
     <div class="card"><div class="lbl">Total últimos trabajos</div><div class="val">${fmtMoney(totalFacturado)}</div></div>
     <div class="card"><div class="lbl">Productos con stock bajo</div><div class="val" style="${stockBajo.length ? 'color:#a12b1d;' : ''}">${stockBajo.length}</div></div>
+    <div class="card"><div class="lbl">Valor total de inventario</div><div class="val">${fmtMoney(valorInventario)}</div></div>
   `;
 
   const tbody = document.getElementById('dashTrabajosBody');
@@ -886,14 +938,21 @@ document.getElementById('btnNuevoCliente').addEventListener('click', () => openM
 document.getElementById('guardarCliente').addEventListener('click', async () => {
   const nombre = document.getElementById('fNombre').value.trim();
   if (!nombre) { alert('El nombre del cliente es obligatorio.'); return; }
+  const usuario = document.getElementById('fUsuario').value.trim() || null;
+  const clave = document.getElementById('fClave').value.trim() || null;
+  let authUserId = null;
+  if (usuario && clave){
+    authUserId = await crearCuentaAcceso(usuario, clave);
+    if (!authUserId){ alert('No se pudo crear la cuenta de acceso para este cliente (¿el usuario ya existe?). Se guardará el cliente igual, pero deberás revisar su acceso al portal.'); }
+  }
   await createCliente({
     nombre,
     rut: document.getElementById('fRut').value.trim(),
     direccion: document.getElementById('fDireccion').value.trim(),
     telefono: document.getElementById('fTelefono').value.trim(),
     contacto: document.getElementById('fContacto').value.trim(),
-    usuario: document.getElementById('fUsuario').value.trim() || null,
-    clave: document.getElementById('fClave').value.trim() || null
+    usuario,
+    auth_user_id: authUserId
   });
   ['fNombre','fRut','fDireccion','fTelefono','fContacto','fUsuario','fClave'].forEach(id => document.getElementById(id).value = '');
   closeModal('modalCliente');
@@ -993,8 +1052,15 @@ document.getElementById('btnNuevaCotizacion').addEventListener('click', async ()
   await listInventario().then(actualizarInventarioParaSelects);
   resetFormCotizacion();
   await poblarSelectClientes('qCliente');
+  autocompletarDestinoCliente();
   openModal('modalCotizacion');
 });
+function autocompletarDestinoCliente(){
+  const clienteId = document.getElementById('qCliente').value;
+  const cliente = cacheClientes.find(c => c.id === clienteId);
+  document.getElementById('qDestinoDireccion').value = (cliente && cliente.direccion) ? cliente.direccion : '';
+}
+document.getElementById('qCliente').addEventListener('change', autocompletarDestinoCliente);
 
 // ---- Materiales dinámicos dentro del formulario de cotización ----
 function agregarFilaMaterialCot(item = '', cantidad = '', costo = ''){
@@ -1019,17 +1085,124 @@ function leerMaterialesCot(){
   })).filter(m => m.item);
 }
 function resetFormCotizacion(){
-  ['qNumero','qEquipo','qUbicacion','qFecha','qDetalle','qHorasEstimadas','qCostoManoObraEstimado','qMonto','qCondicionesPago']
+  ['qNumero','qEquipo','qUbicacion','qFecha','qDetalle','qHorasEstimadas','qCostoManoObraEstimado','qMonto','qCondicionesPago',
+   'qDestinoDireccion','qDistanciaKm','qCostoTag']
     .forEach(id => document.getElementById(id).value = '');
   document.getElementById('qTipoMantencion').selectedIndex = 0;
   document.getElementById('qEstado').value = 'pendiente';
   document.getElementById('qValidezDias').value = '15';
   document.getElementById('materialesRowsCot').innerHTML = '';
+  document.getElementById('qRendimientoKml').value = '7.5';
+  document.getElementById('qPrecioCombustible').value = '1200';
+  document.getElementById('qCostoTag').value = '0';
+  document.getElementById('qCostoTrasladoDisplay').value = '—';
+  document.getElementById('resCostoMateriales').textContent = '—';
+  document.getElementById('resCostoManoObra').textContent = '—';
+  document.getElementById('resCostoTraslado').textContent = '—';
+  document.getElementById('resCostoTotal').textContent = '—';
+  document.getElementById('opcionesPrecioCot').innerHTML = '';
+  cotizacionCalculada = null;
 }
+
+// ---- Cálculo de traslado (origen fijo: Curacaví, Chile) ----
+async function geocodificar(direccion){
+  const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(direccion);
+  const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+  if (!resp.ok) throw new Error('geocoding falló');
+  const data = await resp.json();
+  if (!data.length) throw new Error('dirección no encontrada');
+  return { lat: Number(data[0].lat), lon: Number(data[0].lon) };
+}
+async function calcularDistanciaKm(origen, destino){
+  const url = `https://router.project-osrm.org/route/v1/driving/${origen.lon},${origen.lat};${destino.lon},${destino.lat}?overview=false`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('routing falló');
+  const data = await resp.json();
+  if (!data.routes || !data.routes.length) throw new Error('no se encontró ruta');
+  return data.routes[0].distance / 1000; // metros -> km
+}
+document.getElementById('btnCalcularTraslado').addEventListener('click', async () => {
+  const destinoTxt = document.getElementById('qDestinoDireccion').value.trim();
+  if (!destinoTxt) { alert('Ingresa la dirección de destino del cliente.'); return; }
+  const btn = document.getElementById('btnCalcularTraslado');
+  btn.disabled = true; btn.textContent = 'Calculando...';
+  try {
+    const origen = await geocodificar('Curacaví, Región Metropolitana, Chile');
+    const destino = await geocodificar(destinoTxt + ', Chile');
+    const km = await calcularDistanciaKm(origen, destino);
+    document.getElementById('qDistanciaKm').value = km.toFixed(1);
+  } catch (e){
+    alert('No fue posible calcular la distancia automáticamente (' + e.message + '). Ingresa la distancia en km manualmente.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Calcular distancia y costo de traslado';
+  }
+});
+function calcularCostoTraslado(){
+  const distanciaKm = Number(document.getElementById('qDistanciaKm').value) || 0;
+  const rendimiento = Number(document.getElementById('qRendimientoKml').value) || 7.5;
+  const precioLitro = Number(document.getElementById('qPrecioCombustible').value) || 0;
+  const costoTag = Number(document.getElementById('qCostoTag').value) || 0;
+  const litrosIdaVuelta = (distanciaKm * 2) / rendimiento;
+  const costoCombustible = litrosIdaVuelta * precioLitro;
+  const costoTraslado = costoCombustible + costoTag;
+  document.getElementById('qCostoTrasladoDisplay').value = fmtMoney(costoTraslado);
+  return costoTraslado;
+}
+
+// ---- Resumen de costos + opciones de precio ----
+let cotizacionCalculada = null;
+document.getElementById('btnCalcularResumen').addEventListener('click', () => {
+  const materiales = leerMaterialesCot();
+  const costoMateriales = materiales.reduce((s,m) => s + (Number(m.cantidad)||0) * (Number(m.costo_unitario)||0), 0);
+  const costoManoObra = Number(document.getElementById('qCostoManoObraEstimado').value) || 0;
+  const costoTraslado = calcularCostoTraslado();
+  const costoTotal = costoMateriales + costoManoObra + costoTraslado;
+
+  document.getElementById('resCostoMateriales').textContent = fmtMoney(costoMateriales);
+  document.getElementById('resCostoManoObra').textContent = fmtMoney(costoManoObra);
+  document.getElementById('resCostoTraslado').textContent = fmtMoney(costoTraslado);
+  document.getElementById('resCostoTotal').textContent = fmtMoney(costoTotal);
+
+  cotizacionCalculada = {
+    costo_materiales_total: costoMateriales,
+    costo_mano_obra_estimado: costoManoObra,
+    costo_traslado: costoTraslado,
+    costo_total_servicio: costoTotal,
+    distancia_km: Number(document.getElementById('qDistanciaKm').value) || null,
+    rendimiento_kml: Number(document.getElementById('qRendimientoKml').value) || null,
+    precio_combustible_litro: Number(document.getElementById('qPrecioCombustible').value) || null,
+    costo_tag: Number(document.getElementById('qCostoTag').value) || 0,
+    destino_direccion: document.getElementById('qDestinoDireccion').value.trim(),
+    margen_aplicado: null
+  };
+
+  const margenes = [25, 50, 100];
+  const cont = document.getElementById('opcionesPrecioCot');
+  cont.innerHTML = margenes.map(m => {
+    const precio = costoTotal * (1 + m/100);
+    return `<div class="card opcion-precio" data-margen="${m}" style="cursor:pointer;border:2px solid transparent;">
+      <div class="lbl">Utilidad ${m}%</div><div class="val">${fmtMoney(precio)}</div>
+    </div>`;
+  }).join('');
+  cont.querySelectorAll('.opcion-precio').forEach(card => {
+    card.addEventListener('click', () => {
+      cont.querySelectorAll('.opcion-precio').forEach(c => c.style.border = '2px solid transparent');
+      card.style.border = '2px solid var(--amber, #ff7a30)';
+      const margen = Number(card.dataset.margen);
+      const precio = costoTotal * (1 + margen/100);
+      document.getElementById('qMonto').value = Math.round(precio);
+      cotizacionCalculada.margen_aplicado = margen;
+    });
+  });
+});
 
 document.getElementById('guardarCotizacion').addEventListener('click', async () => {
   const clienteId = document.getElementById('qCliente').value;
   if (!clienteId) { alert('Debes crear al menos un cliente primero.'); return; }
+  if (!cotizacionCalculada || !cotizacionCalculada.margen_aplicado) {
+    alert('Primero haz clic en "Calcular costo del servicio y generar opciones de precio" y selecciona una de las tres opciones de precio.');
+    return;
+  }
   const monto = document.getElementById('qMonto').value;
   if (!monto) { alert('El valor total cotizado es obligatorio.'); return; }
   await createCotizacion({
@@ -1043,6 +1216,15 @@ document.getElementById('guardarCotizacion').addEventListener('click', async () 
     materiales: leerMaterialesCot(),
     horas_estimadas: document.getElementById('qHorasEstimadas').value ? Number(document.getElementById('qHorasEstimadas').value) : null,
     costo_mano_obra_estimado: document.getElementById('qCostoManoObraEstimado').value ? Number(document.getElementById('qCostoManoObraEstimado').value) : null,
+    destino_direccion: cotizacionCalculada.destino_direccion,
+    distancia_km: cotizacionCalculada.distancia_km,
+    rendimiento_kml: cotizacionCalculada.rendimiento_kml,
+    precio_combustible_litro: cotizacionCalculada.precio_combustible_litro,
+    costo_tag: cotizacionCalculada.costo_tag,
+    costo_traslado: cotizacionCalculada.costo_traslado,
+    costo_materiales_total: cotizacionCalculada.costo_materiales_total,
+    costo_total_servicio: cotizacionCalculada.costo_total_servicio,
+    margen_aplicado: cotizacionCalculada.margen_aplicado,
     monto: Number(monto),
     validez_dias: document.getElementById('qValidezDias').value ? Number(document.getElementById('qValidezDias').value) : null,
     condiciones_pago: document.getElementById('qCondicionesPago').value.trim(),
@@ -1082,15 +1264,10 @@ function verCotizacion(id, rowsCache){
     </div>
     <h2>Alcance del trabajo</h2>
     <p>${escapeHtml(q.detalle || '—').replace(/\n/g,'<br>')}</p>
-    ${materiales.length ? `<h2>Materiales y repuestos estimados</h2>
-    <table><tr><th>Ítem</th><th>Cantidad</th><th>Costo unitario</th><th>Subtotal</th></tr>
-    ${materiales.map(m => `<tr><td>${escapeHtml(m.item)}</td><td>${escapeHtml(m.cantidad)}</td><td>${fmtMoney(m.costo_unitario)}</td><td>${fmtMoney((Number(m.cantidad)||0)*(Number(m.costo_unitario)||0))}</td></tr>`).join('')}
+    ${materiales.length ? `<h2>Materiales y repuestos considerados</h2>
+    <table><tr><th>Ítem</th><th>Cantidad</th></tr>
+    ${materiales.map(m => `<tr><td>${escapeHtml(m.item)}</td><td>${escapeHtml(m.cantidad)}</td></tr>`).join('')}
     </table>` : ''}
-    <h2>Mano de obra estimada</h2>
-    <div class="grid">
-      <div><b>Horas estimadas</b>${q.horas_estimadas ?? '—'}</div>
-      <div><b>Costo mano de obra estimado</b>${fmtMoney(q.costo_mano_obra_estimado)}</div>
-    </div>
     <h2>Condiciones comerciales</h2>
     <p>${escapeHtml(q.condiciones_pago || 'A convenir')}</p>
     <div class="total">Valor total cotizado: ${fmtMoney(q.monto)}</div>
@@ -1318,10 +1495,17 @@ document.getElementById('btnNuevoTrabajador').addEventListener('click', () => op
 document.getElementById('guardarTrabajador').addEventListener('click', async () => {
   const nombre = document.getElementById('wNombre').value.trim();
   if (!nombre) { alert('El nombre es obligatorio.'); return; }
+  const usuario = document.getElementById('wUsuario').value.trim() || null;
+  const clave = document.getElementById('wClave').value.trim() || null;
+  let authUserId = null;
+  if (usuario && clave){
+    authUserId = await crearCuentaAcceso(usuario, clave);
+    if (!authUserId){ alert('No se pudo crear la cuenta de acceso para este trabajador (¿el usuario ya existe?). Se guardará el trabajador igual, pero deberás revisar su acceso a la app.'); }
+  }
   await createTrabajador({
     nombre,
-    usuario: document.getElementById('wUsuario').value.trim() || null,
-    clave: document.getElementById('wClave').value.trim() || null,
+    usuario,
+    auth_user_id: authUserId,
     rol: document.getElementById('wRol').value
   });
   ['wNombre','wUsuario','wClave'].forEach(id => document.getElementById(id).value = '');
@@ -1343,19 +1527,23 @@ async function renderInventario(){
 }
 function pintarInventario(lista){
   const tbody = document.getElementById('inventarioBody');
+  const valorTotal = lista.reduce((s,i) => s + (Number(i.stock)||0) * (Number(i.costo_referencia)||0), 0);
+  document.getElementById('valorTotalInventario').textContent = fmtMoney(valorTotal);
   if (!lista.length){
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Aún no hay productos registrados. Usa el botón "＋ Nuevo producto".</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Aún no hay productos registrados. Usa el botón "＋ Nuevo producto".</td></tr>';
     return;
   }
   tbody.innerHTML = lista.map(i => {
     const bajo = Number(i.stock) <= Number(i.stock_minimo || 0);
+    const valorStock = (Number(i.stock)||0) * (Number(i.costo_referencia)||0);
     return `
     <tr data-id="${i.id}">
       <td><b>${escapeHtml(i.nombre)}</b></td><td>${labelCategoria(i.categoria)}</td><td>${escapeHtml(i.unidad || 'unidad')}</td>
       <td>${i.stock} ${bajo ? '<span class="badge rechazado" style="margin-left:6px;">Stock bajo</span>' : ''}</td>
       <td>${i.stock_minimo ?? 0}</td>
+      <td>${fmtMoney(i.costo_referencia)}</td>
+      <td>${fmtMoney(valorStock)}</td>
       <td><button class="btn btn-ghost btn-sm" data-ajustar="${i.id}">Ajustar stock</button></td>
-      <td></td>
     </tr>`;
   }).join('');
   tbody.querySelectorAll('[data-ajustar]').forEach(b => b.addEventListener('click', () => abrirAjusteStock(b.dataset.ajustar)));
@@ -1389,6 +1577,7 @@ function abrirAjusteStock(id){
   if (!productoAjusteActivo) return;
   document.getElementById('ajNombreProducto').value = productoAjusteActivo.nombre + ' (stock actual: ' + productoAjusteActivo.stock + ' ' + (productoAjusteActivo.unidad || 'unidad') + ')';
   document.getElementById('ajCantidad').value = '';
+  document.getElementById('ajCostoReferencia').value = productoAjusteActivo.costo_referencia ?? '';
   document.getElementById('ajNota').value = '';
   document.getElementById('ajTipo').value = 'entrada';
   openModal('modalAjusteStock');
@@ -1402,42 +1591,64 @@ document.getElementById('guardarAjusteStock').addEventListener('click', async ()
   if (tipo === 'entrada') nuevoStock += Number(cantidad);
   else if (tipo === 'salida') nuevoStock = Math.max(0, nuevoStock - Number(cantidad));
   else nuevoStock = Number(cantidad); // ajuste: deja el stock en el valor exacto ingresado
-  await updateInventario(productoAjusteActivo.id, { stock: nuevoStock });
+  const costoRefTxt = document.getElementById('ajCostoReferencia').value;
+  const changes = { stock: nuevoStock };
+  if (costoRefTxt !== '') changes.costo_referencia = Number(costoRefTxt);
+  await updateInventario(productoAjusteActivo.id, changes);
   await registrarMovimiento({ inventario_id: productoAjusteActivo.id, reporte_id: null, tipo, cantidad: Number(cantidad), nota: document.getElementById('ajNota').value.trim() });
   closeModal('modalAjusteStock');
   renderInventario();
 });
 
-// ---- Login ----
-const CREDENCIALES = { usuario: "1234567890", clave: "Paulita123#" };
-
-function intentarLogin(){
-  const u = document.getElementById('loginUser').value.trim();
-  const p = document.getElementById('loginPass').value;
-  const err = document.getElementById('loginError');
-  if (u === CREDENCIALES.usuario && p === CREDENCIALES.clave){
-    err.style.display = 'none';
-    sessionStorage.setItem('ingeproyect_auth', '1');
-    document.getElementById('loginOverlay').style.display = 'none';
-    document.getElementById('appLayout').style.display = 'flex';
-    if (MODO_DEMO) document.getElementById('demoBanner').style.display = 'block';
-    renderDashboard();
-    listInventario().then(actualizarInventarioParaSelects);
-  } else {
-    err.style.display = 'block';
-  }
+// ---- Login (Supabase Auth) ----
+// La cuenta de administrador se creó en Supabase Auth con usuario "1234567890" (correo
+// sintético 1234567890@ingeproyect.local) y la misma contraseña que antes. Las contraseñas
+// ya no se comparan en texto plano ni se guardan en las tablas: las valida Supabase Auth.
+function usuarioToEmail(usuario){
+  return (usuario || '').trim().toLowerCase().replace(/\s+/g, '') + '@ingeproyect.local';
 }
-document.getElementById('loginBtn').addEventListener('click', intentarLogin);
-document.getElementById('loginPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') intentarLogin(); });
-document.getElementById('loginUser').addEventListener('keydown', (e) => { if (e.key === 'Enter') intentarLogin(); });
-
-// ---- Init ----
-if (sessionStorage.getItem('ingeproyect_auth') === '1'){
+function entrarApp(){
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('appLayout').style.display = 'flex';
   if (MODO_DEMO) document.getElementById('demoBanner').style.display = 'block';
   renderDashboard();
   listInventario().then(actualizarInventarioParaSelects);
+}
+async function intentarLogin(){
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  err.style.display = 'none';
+  if (MODO_DEMO){
+    if (u === '1234567890' && p === 'Paulita123#'){
+      sessionStorage.setItem('ingeproyect_auth', '1');
+      entrarApp();
+    } else { err.style.display = 'block'; }
+    return;
+  }
+  const c = await getClient();
+  const { data, error } = await c.auth.signInWithPassword({ email: usuarioToEmail(u), password: p });
+  if (error || !data.session){ err.style.display = 'block'; return; }
+  entrarApp();
+}
+document.getElementById('loginBtn').addEventListener('click', intentarLogin);
+document.getElementById('loginPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') intentarLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', (e) => { if (e.key === 'Enter') intentarLogin(); });
+document.getElementById('btnCerrarSesion').addEventListener('click', async (e) => {
+  e.preventDefault();
+  sessionStorage.removeItem('ingeproyect_auth');
+  if (!MODO_DEMO){ const c = await getClient(); await c.auth.signOut(); }
+  location.reload();
+});
+
+// ---- Init ----
+if (MODO_DEMO && sessionStorage.getItem('ingeproyect_auth') === '1'){
+  entrarApp();
+} else if (!MODO_DEMO) {
+  getClient().then(async (c) => {
+    const { data } = await c.auth.getSession();
+    if (data.session) entrarApp();
+  });
 }
 </script>
 </body>
