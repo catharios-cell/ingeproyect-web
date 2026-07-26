@@ -92,6 +92,29 @@ create table if not exists reportes (
 );
 -- El cliente solo debe poder ver, en su portal, los reportes con estado_validacion = 'validado'.
 
+create table if not exists inventario (
+  id uuid primary key default gen_random_uuid(),
+  nombre text not null,
+  categoria text default 'general', -- 'bombas' | 'calderas' | 'general'
+  unidad text default 'unidad',
+  stock numeric not null default 0,
+  stock_minimo numeric default 0,
+  costo_referencia numeric,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists movimientos_inventario (
+  id uuid primary key default gen_random_uuid(),
+  inventario_id uuid references inventario(id) on delete set null,
+  reporte_id uuid references reportes(id) on delete set null,
+  tipo text not null default 'salida', -- 'entrada' | 'salida' | 'ajuste'
+  cantidad numeric not null,
+  nota text,
+  created_at timestamptz not null default now()
+);
+-- Cuando se guarda un Reporte, cada material que coincide por nombre con un producto de
+-- "inventario" genera automáticamente un movimiento tipo 'salida' y descuenta el stock.
+
 -- Bucket de Storage para las fotos/video que suben los técnicos desde la app de terreno.
 -- Se deja público para simplificar este prototipo (mismo criterio que las políticas "allow all" de abajo).
 insert into storage.buckets (id, name, public)
@@ -109,6 +132,8 @@ alter table historico_trabajos enable row level security;
 alter table cotizaciones enable row level security;
 alter table reportes enable row level security;
 alter table trabajadores enable row level security;
+alter table inventario enable row level security;
+alter table movimientos_inventario enable row level security;
 
 drop policy if exists "allow all clientes" on clientes;
 create policy "allow all clientes" on clientes for all using (true) with check (true);
@@ -124,6 +149,12 @@ create policy "allow all reportes" on reportes for all using (true) with check (
 
 drop policy if exists "allow all trabajadores" on trabajadores;
 create policy "allow all trabajadores" on trabajadores for all using (true) with check (true);
+
+drop policy if exists "allow all inventario" on inventario;
+create policy "allow all inventario" on inventario for all using (true) with check (true);
+
+drop policy if exists "allow all movimientos_inventario" on movimientos_inventario;
+create policy "allow all movimientos_inventario" on movimientos_inventario for all using (true) with check (true);
 
 -- IMPORTANTE (a futuro): estas políticas son abiertas a propósito para este prototipo,
 -- igual que en el resto de las tablas. Antes de manejar datos reales de clientes conviene

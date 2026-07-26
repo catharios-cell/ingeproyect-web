@@ -43,7 +43,7 @@
   .btn-ghost:hover{border-color:var(--navy);}
   .btn-sm{padding:6px 12px;font-size:13px;}
 
-  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:30px;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;margin-bottom:30px;}
   .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px;}
   .card .lbl{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:6px;}
   .card .val{font-size:26px;font-weight:800;color:var(--navy);font-family:'Sora',sans-serif;}
@@ -139,6 +139,7 @@
       <li><button data-view="clientes">👥 Clientes</button></li>
       <li><button data-view="cotizaciones">📄 Cotización</button></li>
       <li><button data-view="reportes">📋 Reporte</button></li>
+      <li><button data-view="inventario">📦 Inventario</button></li>
       <li><button data-view="trabajadores">🧑‍🔧 Trabajadores</button></li>
     </ul>
     <div class="sb-foot"><a href="index.html">← Volver al sitio</a></div>
@@ -248,6 +249,19 @@
       </div>
     </section>
 
+    <!-- INVENTARIO -->
+    <section class="view" id="view-inventario">
+      <div class="view-head">
+        <div><h1>Inventario</h1><p>Stock de materiales y repuestos para mantención de bombas y calderas</p></div>
+        <button class="btn btn-primary" id="btnNuevoProducto">＋ Nuevo producto</button>
+      </div>
+      <div class="search-bar"><input type="text" id="buscarInventario" placeholder="Buscar producto..."></div>
+      <div class="panel" style="padding:0;overflow:hidden;">
+        <table><thead><tr><th>Producto</th><th>Categoría</th><th>Unidad</th><th>Stock</th><th>Stock mínimo</th><th></th><th></th></tr></thead>
+        <tbody id="inventarioBody"><tr class="empty-row"><td colspan="7">Cargando...</td></tr></tbody></table>
+      </div>
+    </section>
+
     <!-- TRABAJADORES -->
     <section class="view" id="view-trabajadores">
       <div class="view-head">
@@ -354,6 +368,44 @@
   </div>
 </div>
 
+<!-- MODAL: Nuevo producto (inventario) -->
+<div class="modal-overlay" id="modalInventario">
+  <div class="modal">
+    <h3>Nuevo producto</h3>
+    <div class="field"><label>Nombre del producto *</label><input type="text" id="iNombre" placeholder="Ej: Sello mecánico estándar"></div>
+    <div class="field"><label>Categoría</label>
+      <select id="iCategoria"><option value="bombas">Bombas</option><option value="calderas">Calderas</option><option value="general">General</option></select>
+    </div>
+    <div class="field"><label>Unidad de medida</label>
+      <select id="iUnidad"><option value="unidad">Unidad</option><option value="litro">Litro</option><option value="kg">Kilo</option><option value="metro">Metro</option></select>
+    </div>
+    <div class="field"><label>Stock inicial</label><input type="number" id="iStock" value="0"></div>
+    <div class="field"><label>Stock mínimo (para alertas)</label><input type="number" id="iStockMinimo" value="0"></div>
+    <div class="field"><label>Costo de referencia ($, opcional)</label><input type="number" id="iCosto"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="modalInventario">Cancelar</button>
+      <button class="btn btn-primary" id="guardarProducto">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Ajustar stock -->
+<div class="modal-overlay" id="modalAjusteStock">
+  <div class="modal">
+    <h3>Ajustar stock</h3>
+    <div class="field"><label>Producto</label><input type="text" id="ajNombreProducto" disabled></div>
+    <div class="field"><label>Tipo de movimiento</label>
+      <select id="ajTipo"><option value="entrada">Entrada (compra / reposición)</option><option value="salida">Salida manual</option><option value="ajuste">Ajuste (dejar stock en un valor exacto)</option></select>
+    </div>
+    <div class="field"><label>Cantidad</label><input type="number" id="ajCantidad" placeholder="Cantidad (o valor final si es ajuste)"></div>
+    <div class="field"><label>Nota (opcional)</label><input type="text" id="ajNota" placeholder="Ej: Compra a proveedor XYZ"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="modalAjusteStock">Cancelar</button>
+      <button class="btn btn-primary" id="guardarAjusteStock">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Nuevo trabajador -->
 <div class="modal-overlay" id="modalTrabajador">
   <div class="modal">
@@ -443,6 +495,8 @@
   </div>
 </div>
 
+<datalist id="listaInventario"></datalist>
+
 <script type="module">
 // =========================================================================
 // CONFIGURACIÓN DE SUPABASE
@@ -475,7 +529,30 @@ const demoDB = {
   trabajadores: [
     { id: 'demo-trab-1', nombre: 'José Luis Sanhueza', usuario: 'jsanhueza', clave: 'Validador2026', rol: 'validador', created_at: new Date().toISOString() },
     { id: 'demo-trab-2', nombre: 'Técnico de ejemplo', usuario: 'tecnico', clave: 'tecnico123', rol: 'tecnico', created_at: new Date().toISOString() }
-  ]
+  ],
+  inventario: [
+    { id: 'inv-1', nombre: 'Sello mecánico estándar', categoria: 'bombas', unidad: 'unidad', stock: 12, stock_minimo: 4, costo_referencia: 18000 },
+    { id: 'inv-2', nombre: 'Empaquetadura de grafito', categoria: 'bombas', unidad: 'metro', stock: 25, stock_minimo: 10, costo_referencia: 6000 },
+    { id: 'inv-3', nombre: 'Rodamiento SKF 6205', categoria: 'bombas', unidad: 'unidad', stock: 8, stock_minimo: 4, costo_referencia: 15000 },
+    { id: 'inv-4', nombre: 'Correa trapezoidal A-38', categoria: 'bombas', unidad: 'unidad', stock: 10, stock_minimo: 3, costo_referencia: 9000 },
+    { id: 'inv-5', nombre: 'Acople flexible', categoria: 'bombas', unidad: 'unidad', stock: 6, stock_minimo: 2, costo_referencia: 25000 },
+    { id: 'inv-6', nombre: 'Impulsor de bomba centrífuga', categoria: 'bombas', unidad: 'unidad', stock: 3, stock_minimo: 2, costo_referencia: 65000 },
+    { id: 'inv-7', nombre: 'Válvula de retención 2"', categoria: 'bombas', unidad: 'unidad', stock: 5, stock_minimo: 2, costo_referencia: 32000 },
+    { id: 'inv-8', nombre: 'Válvula de compuerta 2"', categoria: 'bombas', unidad: 'unidad', stock: 5, stock_minimo: 2, costo_referencia: 28000 },
+    { id: 'inv-9', nombre: 'Electrodo de soldadura 6013', categoria: 'calderas', unidad: 'kg', stock: 20, stock_minimo: 5, costo_referencia: 4500 },
+    { id: 'inv-10', nombre: 'Empaquetadura para mirilla de caldera', categoria: 'calderas', unidad: 'unidad', stock: 8, stock_minimo: 3, costo_referencia: 12000 },
+    { id: 'inv-11', nombre: 'Quemador boquilla diésel', categoria: 'calderas', unidad: 'unidad', stock: 4, stock_minimo: 2, costo_referencia: 40000 },
+    { id: 'inv-12', nombre: 'Termocupla tipo K', categoria: 'calderas', unidad: 'unidad', stock: 6, stock_minimo: 3, costo_referencia: 15000 },
+    { id: 'inv-13', nombre: 'Presostato de caldera', categoria: 'calderas', unidad: 'unidad', stock: 3, stock_minimo: 2, costo_referencia: 35000 },
+    { id: 'inv-14', nombre: 'Válvula de seguridad 1/2"', categoria: 'calderas', unidad: 'unidad', stock: 4, stock_minimo: 2, costo_referencia: 45000 },
+    { id: 'inv-15', nombre: 'Tubo de caldera 2"', categoria: 'calderas', unidad: 'metro', stock: 15, stock_minimo: 5, costo_referencia: 22000 },
+    { id: 'inv-16', nombre: 'Cemento refractario', categoria: 'calderas', unidad: 'kg', stock: 30, stock_minimo: 10, costo_referencia: 3500 },
+    { id: 'inv-17', nombre: 'Aceite lubricante ISO 68', categoria: 'general', unidad: 'litro', stock: 40, stock_minimo: 10, costo_referencia: 4000 },
+    { id: 'inv-18', nombre: 'Grasa multipropósito', categoria: 'general', unidad: 'kg', stock: 15, stock_minimo: 5, costo_referencia: 5000 },
+    { id: 'inv-19', nombre: 'Filtro de aceite', categoria: 'general', unidad: 'unidad', stock: 12, stock_minimo: 4, costo_referencia: 8000 },
+    { id: 'inv-20', nombre: 'Pernos y tuercas surtidos', categoria: 'general', unidad: 'unidad', stock: 100, stock_minimo: 20, costo_referencia: 500 }
+  ],
+  movimientos_inventario: []
 };
 function uid(){ return 'demo-' + Math.random().toString(36).slice(2, 10); }
 
@@ -617,6 +694,66 @@ async function createTrabajador(obj){
   return data;
 }
 
+// ---- Inventario ----
+async function listInventario(){
+  if (MODO_DEMO) return [...demoDB.inventario].sort((a,b)=> a.nombre.localeCompare(b.nombre));
+  const c = await getClient();
+  const { data, error } = await c.from('inventario').select('*').order('nombre');
+  if (error) throw error;
+  return data;
+}
+async function createInventario(obj){
+  if (MODO_DEMO){
+    const row = { id: uid(), created_at: new Date().toISOString(), ...obj };
+    demoDB.inventario.push(row);
+    return row;
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('inventario').insert(obj).select().single();
+  if (error) throw error;
+  return data;
+}
+async function updateInventario(id, changes){
+  if (MODO_DEMO){
+    const row = demoDB.inventario.find(i => i.id === id);
+    if (row) Object.assign(row, changes);
+    return row;
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('inventario').update(changes).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
+}
+async function registrarMovimiento(obj){
+  if (MODO_DEMO){
+    const row = { id: uid(), created_at: new Date().toISOString(), ...obj };
+    demoDB.movimientos_inventario.push(row);
+    return row;
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('movimientos_inventario').insert(obj).select().single();
+  if (error) throw error;
+  return data;
+}
+// Descuenta stock automáticamente cuando un material de un Reporte coincide (por nombre)
+// con un producto del inventario. Si no coincide con ningún producto, no hace nada
+// (se asume que es un material no inventariado / de una sola vez).
+async function descontarInventarioPorMateriales(materiales, reporteId){
+  if (!Array.isArray(materiales) || !materiales.length) return;
+  const inventario = await listInventario();
+  for (const m of materiales){
+    if (!m.item || !m.cantidad) continue;
+    const match = inventario.find(i => i.nombre.trim().toLowerCase() === m.item.trim().toLowerCase());
+    if (!match) continue;
+    const nuevoStock = Math.max(0, Number(match.stock || 0) - Number(m.cantidad));
+    await updateInventario(match.id, { stock: nuevoStock });
+    await registrarMovimiento({ inventario_id: match.id, reporte_id: reporteId, tipo: 'salida', cantidad: Number(m.cantidad), nota: 'Descuento automático desde informe de servicio' });
+  }
+}
+function poblarDatalistInventario(inventario){
+  document.getElementById('listaInventario').innerHTML = inventario.map(i => `<option value="${escapeHtml(i.nombre)}">`).join('');
+}
+
 // ---- Navegación ----
 let clienteActivo = null;
 
@@ -632,6 +769,7 @@ document.querySelectorAll('.sb-nav button').forEach(btn => {
     if (btn.dataset.view === 'clientes') renderClientes();
     if (btn.dataset.view === 'cotizaciones') renderCotizaciones();
     if (btn.dataset.view === 'reportes') renderReportes();
+    if (btn.dataset.view === 'inventario') renderInventario();
     if (btn.dataset.view === 'trabajadores') renderTrabajadores();
   });
 });
@@ -642,15 +780,17 @@ document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click
 
 // ---- Dashboard ----
 async function renderDashboard(){
-  const [clientes, trabajos, cotizaciones] = await Promise.all([listClientes(), listTrabajosRecientes(6), listCotizaciones()]);
+  const [clientes, trabajos, cotizaciones, inventario] = await Promise.all([listClientes(), listTrabajosRecientes(6), listCotizaciones(), listInventario()]);
   const pendientes = cotizaciones.filter(q => q.estado === 'pendiente');
   const totalFacturado = trabajos.reduce((sum, t) => sum + (Number(t.monto) || 0), 0);
+  const stockBajo = inventario.filter(i => Number(i.stock) <= Number(i.stock_minimo || 0));
 
   document.getElementById('dashCards').innerHTML = `
     <div class="card"><div class="lbl">Clientes</div><div class="val">${clientes.length}</div></div>
     <div class="card"><div class="lbl">Cotizaciones pendientes</div><div class="val">${pendientes.length}</div></div>
     <div class="card"><div class="lbl">Trabajos registrados</div><div class="val">${trabajos.length}</div></div>
     <div class="card"><div class="lbl">Total últimos trabajos</div><div class="val">${fmtMoney(totalFacturado)}</div></div>
+    <div class="card"><div class="lbl">Productos con stock bajo</div><div class="val" style="${stockBajo.length ? 'color:#a12b1d;' : ''}">${stockBajo.length}</div></div>
   `;
 
   const tbody = document.getElementById('dashTrabajosBody');
@@ -812,7 +952,7 @@ function agregarFilaMaterialCot(item = '', cantidad = '', costo = ''){
   const row = document.createElement('div');
   row.className = 'mat-row';
   row.innerHTML = `
-    <input type="text" placeholder="Material / repuesto" class="mat-item" value="${escapeHtml(item)}">
+    <input type="text" placeholder="Material / repuesto" class="mat-item" list="listaInventario" value="${escapeHtml(item)}">
     <input type="number" placeholder="Cant." class="mat-cant" value="${escapeHtml(cantidad)}">
     <input type="number" placeholder="Costo unit." class="mat-costo" value="${escapeHtml(costo)}">
     <button type="button" title="Quitar">✕</button>
@@ -971,7 +1111,7 @@ function agregarFilaMaterial(item = '', cantidad = '', costo = ''){
   const row = document.createElement('div');
   row.className = 'mat-row';
   row.innerHTML = `
-    <input type="text" placeholder="Material / repuesto" class="mat-item" value="${escapeHtml(item)}">
+    <input type="text" placeholder="Material / repuesto" class="mat-item" list="listaInventario" value="${escapeHtml(item)}">
     <input type="number" placeholder="Cant." class="mat-cant" value="${escapeHtml(cantidad)}">
     <input type="number" placeholder="Costo unit." class="mat-costo" value="${escapeHtml(costo)}">
     <button type="button" title="Quitar">✕</button>
@@ -1008,7 +1148,7 @@ document.getElementById('guardarReporte').addEventListener('click', async () => 
   if (!contenido) { alert('Describe el diagnóstico / trabajo realizado.'); return; }
 
   const materiales = leerMateriales();
-  await createReporte({
+  const nuevoReporte = await createReporte({
     cliente_id: clienteId,
     numero: document.getElementById('rNumero').value.trim(),
     titulo,
@@ -1035,6 +1175,8 @@ document.getElementById('guardarReporte').addEventListener('click', async () => 
     fecha_validacion: null,
     trabajador_id: null
   });
+  await descontarInventarioPorMateriales(materiales, nuevoReporte.id);
+  renderInventario();
   document.getElementById('rCliente').disabled = false;
   closeModal('modalReporte');
   if (document.getElementById('view-cliente-detalle').classList.contains('active')) {
@@ -1137,6 +1279,84 @@ document.getElementById('guardarTrabajador').addEventListener('click', async () 
   renderTrabajadores();
 });
 
+// ---- Inventario (vista) ----
+let cacheInventario = [];
+function labelCategoria(v){
+  const map = { bombas: 'Bombas', calderas: 'Calderas', general: 'General' };
+  return map[v] || v || '—';
+}
+async function renderInventario(){
+  cacheInventario = await listInventario();
+  poblarDatalistInventario(cacheInventario);
+  pintarInventario(cacheInventario);
+}
+function pintarInventario(lista){
+  const tbody = document.getElementById('inventarioBody');
+  if (!lista.length){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Aún no hay productos registrados. Usa el botón "＋ Nuevo producto".</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lista.map(i => {
+    const bajo = Number(i.stock) <= Number(i.stock_minimo || 0);
+    return `
+    <tr data-id="${i.id}">
+      <td><b>${escapeHtml(i.nombre)}</b></td><td>${labelCategoria(i.categoria)}</td><td>${escapeHtml(i.unidad || 'unidad')}</td>
+      <td>${i.stock} ${bajo ? '<span class="badge rechazado" style="margin-left:6px;">Stock bajo</span>' : ''}</td>
+      <td>${i.stock_minimo ?? 0}</td>
+      <td><button class="btn btn-ghost btn-sm" data-ajustar="${i.id}">Ajustar stock</button></td>
+      <td></td>
+    </tr>`;
+  }).join('');
+  tbody.querySelectorAll('[data-ajustar]').forEach(b => b.addEventListener('click', () => abrirAjusteStock(b.dataset.ajustar)));
+}
+document.getElementById('buscarInventario').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  pintarInventario(cacheInventario.filter(i => i.nombre.toLowerCase().includes(q)));
+});
+document.getElementById('btnNuevoProducto').addEventListener('click', () => openModal('modalInventario'));
+document.getElementById('guardarProducto').addEventListener('click', async () => {
+  const nombre = document.getElementById('iNombre').value.trim();
+  if (!nombre) { alert('El nombre del producto es obligatorio.'); return; }
+  await createInventario({
+    nombre,
+    categoria: document.getElementById('iCategoria').value,
+    unidad: document.getElementById('iUnidad').value,
+    stock: Number(document.getElementById('iStock').value || 0),
+    stock_minimo: Number(document.getElementById('iStockMinimo').value || 0),
+    costo_referencia: document.getElementById('iCosto').value ? Number(document.getElementById('iCosto').value) : null
+  });
+  ['iNombre','iStock','iStockMinimo','iCosto'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('iStock').value = '0';
+  document.getElementById('iStockMinimo').value = '0';
+  closeModal('modalInventario');
+  renderInventario();
+});
+
+let productoAjusteActivo = null;
+function abrirAjusteStock(id){
+  productoAjusteActivo = cacheInventario.find(i => i.id === id);
+  if (!productoAjusteActivo) return;
+  document.getElementById('ajNombreProducto').value = productoAjusteActivo.nombre + ' (stock actual: ' + productoAjusteActivo.stock + ' ' + (productoAjusteActivo.unidad || 'unidad') + ')';
+  document.getElementById('ajCantidad').value = '';
+  document.getElementById('ajNota').value = '';
+  document.getElementById('ajTipo').value = 'entrada';
+  openModal('modalAjusteStock');
+}
+document.getElementById('guardarAjusteStock').addEventListener('click', async () => {
+  if (!productoAjusteActivo) return;
+  const tipo = document.getElementById('ajTipo').value;
+  const cantidad = document.getElementById('ajCantidad').value;
+  if (!cantidad) { alert('Ingresa una cantidad.'); return; }
+  let nuevoStock = Number(productoAjusteActivo.stock || 0);
+  if (tipo === 'entrada') nuevoStock += Number(cantidad);
+  else if (tipo === 'salida') nuevoStock = Math.max(0, nuevoStock - Number(cantidad));
+  else nuevoStock = Number(cantidad); // ajuste: deja el stock en el valor exacto ingresado
+  await updateInventario(productoAjusteActivo.id, { stock: nuevoStock });
+  await registrarMovimiento({ inventario_id: productoAjusteActivo.id, reporte_id: null, tipo, cantidad: Number(cantidad), nota: document.getElementById('ajNota').value.trim() });
+  closeModal('modalAjusteStock');
+  renderInventario();
+});
+
 // ---- Login ----
 const CREDENCIALES = { usuario: "1234567890", clave: "Paulita123#" };
 
@@ -1151,6 +1371,7 @@ function intentarLogin(){
     document.getElementById('appLayout').style.display = 'flex';
     if (MODO_DEMO) document.getElementById('demoBanner').style.display = 'block';
     renderDashboard();
+    listInventario().then(poblarDatalistInventario);
   } else {
     err.style.display = 'block';
   }
@@ -1165,6 +1386,7 @@ if (sessionStorage.getItem('ingeproyect_auth') === '1'){
   document.getElementById('appLayout').style.display = 'flex';
   if (MODO_DEMO) document.getElementById('demoBanner').style.display = 'block';
   renderDashboard();
+  listInventario().then(poblarDatalistInventario);
 }
 </script>
 </body>

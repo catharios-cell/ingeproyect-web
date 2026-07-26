@@ -185,6 +185,8 @@
   </nav>
 </div>
 
+<datalist id="listaInventario"></datalist>
+
 <div class="detail-overlay" id="detailOverlay">
   <div class="detail-sheet">
     <h3 id="dTitulo">—</h3>
@@ -222,6 +224,16 @@ const demoDB = {
   clientes: [
     { id: 'demo-cliente-app', nombre: 'Cliente de ejemplo' }
   ],
+  inventario: [
+    { id: 'inv-1', nombre: 'Sello mecánico estándar', categoria: 'bombas', unidad: 'unidad', stock: 12, stock_minimo: 4 },
+    { id: 'inv-2', nombre: 'Empaquetadura de grafito', categoria: 'bombas', unidad: 'metro', stock: 25, stock_minimo: 10 },
+    { id: 'inv-3', nombre: 'Rodamiento SKF 6205', categoria: 'bombas', unidad: 'unidad', stock: 8, stock_minimo: 4 },
+    { id: 'inv-9', nombre: 'Electrodo de soldadura 6013', categoria: 'calderas', unidad: 'kg', stock: 20, stock_minimo: 5 },
+    { id: 'inv-14', nombre: 'Válvula de seguridad 1/2"', categoria: 'calderas', unidad: 'unidad', stock: 4, stock_minimo: 2 },
+    { id: 'inv-17', nombre: 'Aceite lubricante ISO 68', categoria: 'general', unidad: 'litro', stock: 40, stock_minimo: 10 },
+    { id: 'inv-18', nombre: 'Grasa multipropósito', categoria: 'general', unidad: 'kg', stock: 15, stock_minimo: 5 }
+  ],
+  movimientos_inventario: [],
   reportes: [
     { id: 'demo-rep-1', cliente_id: 'demo-cliente-app', numero: 'INF-2026-000', titulo: 'Revisión válvulas sala de bombas',
       tipo_servicio: 'Sistemas hidráulicos y de presión', equipo: 'Bomba centrífuga N°2', ubicacion: 'Planta principal',
@@ -254,6 +266,52 @@ async function listClientes(){
   const { data, error } = await c.from('clientes').select('*').order('nombre');
   if (error) throw error;
   return data;
+}
+
+// ---- Inventario (solo lectura + descuento automático desde esta app) ----
+async function listInventario(){
+  if (MODO_DEMO) return [...demoDB.inventario].sort((a,b)=> a.nombre.localeCompare(b.nombre));
+  const c = await getClient();
+  const { data, error } = await c.from('inventario').select('*').order('nombre');
+  if (error) throw error;
+  return data;
+}
+async function updateInventario(id, changes){
+  if (MODO_DEMO){
+    const row = demoDB.inventario.find(i => i.id === id);
+    if (row) Object.assign(row, changes);
+    return row;
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('inventario').update(changes).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
+}
+async function registrarMovimiento(obj){
+  if (MODO_DEMO){
+    const row = { id: uid(), created_at: new Date().toISOString(), ...obj };
+    demoDB.movimientos_inventario.push(row);
+    return row;
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('movimientos_inventario').insert(obj).select().single();
+  if (error) throw error;
+  return data;
+}
+async function descontarInventarioPorMateriales(materiales, reporteId){
+  if (!Array.isArray(materiales) || !materiales.length) return;
+  const inventario = await listInventario();
+  for (const m of materiales){
+    if (!m.item || !m.cantidad) continue;
+    const match = inventario.find(i => i.nombre.trim().toLowerCase() === m.item.trim().toLowerCase());
+    if (!match) continue;
+    const nuevoStock = Math.max(0, Number(match.stock || 0) - Number(m.cantidad));
+    await updateInventario(match.id, { stock: nuevoStock });
+    await registrarMovimiento({ inventario_id: match.id, reporte_id: reporteId, tipo: 'salida', cantidad: Number(m.cantidad), nota: 'Descuento automático desde app de terreno' });
+  }
+}
+function poblarDatalistInventario(inventario){
+  document.getElementById('listaInventario').innerHTML = inventario.map(i => `<option value="${escapeHtml(i.nombre)}">`).join('');
 }
 async function createReporte(obj){
   if (MODO_DEMO){
@@ -384,6 +442,7 @@ async function entrarApp(){
   document.getElementById('whoRol').textContent = trabajadorActivo.rol === 'validador' ? 'Validador' : 'Técnico de terreno';
   document.getElementById('navValidar').classList.toggle('hidden', trabajadorActivo.rol !== 'validador');
   await poblarSelectClientesApp();
+  poblarDatalistInventario(await listInventario());
   document.getElementById('nFecha').value = new Date().toISOString().slice(0,10);
   mostrarSeccion('nuevo');
 }
@@ -408,7 +467,7 @@ function agregarFilaMaterialApp(item='', cantidad='', costo=''){
   const row = document.createElement('div');
   row.className = 'mat-row';
   row.innerHTML = `
-    <input type="text" placeholder="Material" class="mat-item" value="${escapeHtml(item)}">
+    <input type="text" placeholder="Material" class="mat-item" list="listaInventario" value="${escapeHtml(item)}">
     <input type="number" placeholder="Cant." class="mat-cant" value="${escapeHtml(cantidad)}">
     <input type="number" placeholder="Costo" class="mat-costo" value="${escapeHtml(costo)}">
     <button type="button">✕</button>
@@ -442,7 +501,8 @@ document.getElementById('btnEnviarReporte').addEventListener('click', async () =
     const videoFile = document.getElementById('nVideo').files[0];
     const videoUrl = videoFile ? await subirArchivo(videoFile, 'videos') : null;
 
-    await createReporte({
+    const materiales = leerMaterialesApp();
+    const nuevoReporte = await createReporte({
       cliente_id: clienteId,
       numero: document.getElementById('nNumero').value.trim(),
       titulo,
@@ -452,7 +512,7 @@ document.getElementById('btnEnviarReporte').addEventListener('click', async () =
       fecha: document.getElementById('nFecha').value || null,
       fecha_inicio: document.getElementById('nFecha').value || null,
       contenido,
-      materiales: leerMaterialesApp(),
+      materiales,
       horas: document.getElementById('nHoras').value ? Number(document.getElementById('nHoras').value) : null,
       valor_total: null,
       recomendaciones: document.getElementById('nRecomendaciones').value.trim(),
@@ -467,6 +527,7 @@ document.getElementById('btnEnviarReporte').addEventListener('click', async () =
       fotos: [...fotosAntes, ...fotosDespues],
       video_url: videoUrl
     });
+    await descontarInventarioPorMateriales(materiales, nuevoReporte.id);
 
     ['nNumero','nTitulo','nEquipo','nUbicacion','nContenido','nHoras','nRecomendaciones','nConformidad'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('nTipoServicio').selectedIndex = 0;
