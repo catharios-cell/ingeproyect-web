@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal de Clientes · Grupo Ingeproyect SpA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0b2437; --navy-2:#0f3452; --amber:#ff7a30; --amber-2:#ff9457;
+    --bg:#f3f6f8; --line:#e3e8ec; --text:#1c2b36; --muted:#5b7080; --green:#1fae5c;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',sans-serif;color:var(--text);background:var(--bg);min-height:100vh;}
+  h1,h2,h3{font-family:'Sora',sans-serif;}
+  button{font-family:inherit;cursor:pointer;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:8px;font-weight:600;font-size:14.5px;border:none;}
+  .btn-primary{background:var(--amber);color:#fff;}
+  .btn-primary:hover{background:#ff6d18;}
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  .field label{font-size:13px;font-weight:600;color:var(--muted);}
+  .field input{border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;}
+
+  #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--navy),#0d2c44);padding:20px;}
+  .login-card{background:#fff;border-radius:16px;padding:36px 32px;max-width:360px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.3);}
+  .login-card .brand{font-family:'Sora',sans-serif;font-weight:700;font-size:18px;color:var(--navy);margin-bottom:4px;}
+  .login-card .sub{color:var(--muted);font-size:13.5px;margin-bottom:22px;}
+  #loginError{color:#d9483a;font-size:13px;font-weight:600;margin-bottom:10px;display:none;}
+
+  header{background:linear-gradient(160deg,var(--navy),#0d2c44);color:#fff;padding:18px 30px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  header .brand{font-family:'Sora',sans-serif;font-weight:700;font-size:17px;}
+  header .brand small{display:block;font-family:'Inter',sans-serif;font-weight:500;font-size:11px;color:#9db2c2;}
+  header a{color:#c9d7e0;font-size:13.5px;font-weight:600;}
+
+  .main{max-width:900px;margin:0 auto;padding:36px 24px;}
+  .tabs{display:flex;gap:6px;border-bottom:2px solid var(--line);margin-bottom:26px;}
+  .tabs button{background:none;border:none;padding:11px 18px;font-size:14.5px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;}
+  .tabs button.active{color:var(--amber);border-bottom-color:var(--amber);}
+  .tabview{display:none;}
+  .tabview.active{display:block;}
+
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .info-item{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;}
+  .info-item b{display:block;font-size:12px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.03em;}
+  .info-item span{font-size:15.5px;font-weight:600;color:var(--navy);}
+
+  .panel{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{text-align:left;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);padding:12px;border-bottom:2px solid var(--line);}
+  td{padding:12px;border-bottom:1px solid var(--line);}
+  .empty-row td{text-align:center;color:var(--muted);padding:28px;}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;}
+  .badge.completado{background:#d7f3e3;color:#106b3c;}
+  .badge.en-curso{background:#dce9fb;color:#1a4f8c;}
+
+  @media(max-width:640px){ .info-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="brand">Grupo Ingeproyect</div>
+    <div class="sub">Portal de clientes</div>
+    <div class="field"><label>Usuario</label><input type="text" id="loginUser"></div>
+    <div class="field"><label>Contraseña</label><input type="password" id="loginPass"></div>
+    <div id="loginError">Usuario o contraseña incorrectos.</div>
+    <button class="btn btn-primary" id="loginBtn" style="width:100%;justify-content:center;">Ingresar</button>
+  </div>
+</div>
+
+<div id="portalApp" style="display:none;">
+  <header>
+    <div class="brand">Grupo Ingeproyect<small>PORTAL DE CLIENTES</small></div>
+    <a href="index.html">← Volver al sitio</a>
+  </header>
+  <div class="main">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="datos">Mis datos</button>
+      <button class="tab-btn" data-tab="historial">Historial de mantenciones</button>
+    </div>
+
+    <div class="tabview active" id="tab-datos">
+      <div class="info-grid">
+        <div class="info-item"><b>Nombre</b><span id="pNombre">—</span></div>
+        <div class="info-item"><b>RUT</b><span id="pRut">—</span></div>
+        <div class="info-item"><b>Dirección</b><span id="pDireccion">—</span></div>
+        <div class="info-item"><b>Teléfono</b><span id="pTelefono">—</span></div>
+        <div class="info-item"><b>Contacto</b><span id="pContacto">—</span></div>
+      </div>
+    </div>
+
+    <div class="tabview" id="tab-historial">
+      <div class="panel">
+        <table>
+          <thead><tr><th>Trabajo / Mantención</th><th>Fecha</th><th>Estado</th></tr></thead>
+          <tbody id="historialBody"><tr class="empty-row"><td colspan="3">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// Mismo proyecto Supabase que usa la intranet interna.
+const supabaseConfig = {
+  url: "TU_SUPABASE_URL",
+  anonKey: "TU_SUPABASE_ANON_KEY"
+};
+const MODO_DEMO = supabaseConfig.url === "TU_SUPABASE_URL";
+
+let supabase = null;
+async function getClient(){
+  if (MODO_DEMO) return null;
+  if (supabase) return supabase;
+  const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+  supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
+  return supabase;
+}
+function escapeHtml(s){
+  return (s === null || s === undefined ? '' : String(s))
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtDate(d){ return d || '—'; }
+
+async function buscarClientePorUsuario(usuario, clave){
+  if (MODO_DEMO){
+    // En modo demo no hay datos compartidos con la intranet; se usa un cliente de ejemplo
+    // para que puedas ver cómo se ve el portal mientras conectas Supabase de verdad.
+    if (usuario === 'demo' && clave === 'demo') {
+      return { id: 'demo-cliente', nombre: 'Cliente de ejemplo', rut: '11.111.111-1', direccion: 'Dirección de ejemplo', telefono: '+56 9 0000 0000', contacto: 'Contacto de ejemplo' };
+    }
+    return null;
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('clientes').select('*').eq('usuario', usuario).eq('clave', clave).maybeSingle();
+  if (error) { console.error(error); return null; }
+  return data;
+}
+async function listarHistorial(clienteId){
+  if (MODO_DEMO){
+    if (clienteId === 'demo-cliente') {
+      return [
+        { descripcion: 'Mantenimiento preventivo caldera pirotubular', fecha: '2026-05-14', estado: 'completado' },
+        { descripcion: 'Diagnóstico eficiencia sala de bombas', fecha: '2026-03-02', estado: 'completado' }
+      ];
+    }
+    return [];
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('historico_trabajos').select('*').eq('cliente_id', clienteId).order('fecha', { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data;
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.tabview').forEach(v => v.classList.toggle('active', v.id === 'tab-' + btn.dataset.tab));
+  });
+});
+
+async function ingresarPortal(cliente){
+  sessionStorage.setItem('ingeproyect_portal_cliente_id', cliente.id);
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('portalApp').style.display = 'block';
+  document.getElementById('pNombre').textContent = cliente.nombre || '—';
+  document.getElementById('pRut').textContent = cliente.rut || '—';
+  document.getElementById('pDireccion').textContent = cliente.direccion || '—';
+  document.getElementById('pTelefono').textContent = cliente.telefono || '—';
+  document.getElementById('pContacto').textContent = cliente.contacto || '—';
+
+  const historial = await listarHistorial(cliente.id);
+  const tbody = document.getElementById('historialBody');
+  tbody.innerHTML = historial.length ? historial.map(t => `
+    <tr><td>${escapeHtml(t.descripcion)}</td><td>${fmtDate(t.fecha)}</td>
+    <td><span class="badge ${t.estado}">${escapeHtml(t.estado || '')}</span></td></tr>
+  `).join('') : '<tr class="empty-row"><td colspan="3">Aún no registramos mantenciones para tu cuenta.</td></tr>';
+}
+
+async function intentarLogin(){
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  const cliente = await buscarClientePorUsuario(u, p);
+  if (cliente){
+    err.style.display = 'none';
+    ingresarPortal(cliente);
+  } else {
+    err.style.display = 'block';
+  }
+}
+document.getElementById('loginBtn').addEventListener('click', intentarLogin);
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') intentarLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') intentarLogin(); });
+</script>
+</body>
+</html>

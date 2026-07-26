@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intranet · Grupo Ingeproyect SpA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0b2437; --navy-2:#0f3452; --amber:#ff7a30; --amber-2:#ff9457;
+    --bg:#f3f6f8; --line:#e3e8ec; --text:#1c2b36; --muted:#5b7080; --green:#1fae5c; --red:#d9483a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',sans-serif;color:var(--text);background:var(--bg);}
+  h1,h2,h3{font-family:'Sora',sans-serif;}
+  button{font-family:inherit;cursor:pointer;}
+
+  #demoBanner{background:#fff3cd;color:#7a5b00;text-align:center;padding:8px 16px;font-size:13.5px;font-weight:600;display:none;}
+
+  .layout{display:flex;min-height:100vh;}
+  .sidebar{width:230px;background:linear-gradient(180deg,var(--navy),#0d2c44);color:#fff;flex-shrink:0;display:flex;flex-direction:column;}
+  .sb-logo{padding:22px 20px;font-family:'Sora',sans-serif;font-weight:700;font-size:16px;border-bottom:1px solid rgba(255,255,255,.08);}
+  .sb-logo small{display:block;font-family:'Inter',sans-serif;font-weight:500;font-size:10.5px;color:#93a9b8;letter-spacing:.05em;margin-top:2px;}
+  .sb-nav{list-style:none;padding:14px 10px;flex:1;}
+  .sb-nav li{margin-bottom:4px;}
+  .sb-nav button{width:100%;text-align:left;background:none;border:none;color:#c9d7e0;padding:11px 14px;border-radius:8px;font-size:14.5px;font-weight:500;display:flex;align-items:center;gap:10px;}
+  .sb-nav button:hover{background:rgba(255,255,255,.06);color:#fff;}
+  .sb-nav button.active{background:var(--amber);color:#fff;font-weight:600;}
+  .sb-foot{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);}
+  .sb-foot a{color:#9fb4c2;font-size:13px;}
+
+  .main{flex:1;padding:32px 40px;max-width:1180px;}
+  .view{display:none;}
+  .view.active{display:block;}
+  .view-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px;flex-wrap:wrap;gap:12px;}
+  .view-head h1{font-size:24px;color:var(--navy);}
+  .view-head p{color:var(--muted);font-size:14px;margin-top:4px;}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:8px;font-weight:600;font-size:14px;border:none;}
+  .btn-primary{background:var(--amber);color:#fff;}
+  .btn-primary:hover{background:#ff6d18;}
+  .btn-ghost{background:#fff;color:var(--navy);border:1.5px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--navy);}
+  .btn-sm{padding:6px 12px;font-size:13px;}
+
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:30px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px;}
+  .card .lbl{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:6px;}
+  .card .val{font-size:26px;font-weight:800;color:var(--navy);font-family:'Sora',sans-serif;}
+
+  .panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:22px;}
+  .panel h3{font-size:15px;color:var(--navy);margin-bottom:14px;}
+
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{text-align:left;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);padding:10px 12px;border-bottom:2px solid var(--line);}
+  td{padding:12px;border-bottom:1px solid var(--line);}
+  tr.clickable{cursor:pointer;}
+  tr.clickable:hover{background:#f7f9fb;}
+  .empty-row td{text-align:center;color:var(--muted);padding:28px;}
+
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;}
+  .badge.pendiente{background:#fff3cd;color:#7a5b00;}
+  .badge.aceptada{background:#d7f3e3;color:#106b3c;}
+  .badge.rechazada{background:#fbe0dd;color:#a12b1d;}
+  .badge.completado{background:#d7f3e3;color:#106b3c;}
+  .badge.en-curso{background:#dce9fb;color:#1a4f8c;}
+  .badge.facturado{background:#dce9fb;color:#1a4f8c;}
+  .badge.pagado{background:#d7f3e3;color:#106b3c;}
+
+  .mat-row{display:grid;grid-template-columns:1fr 90px 120px 32px;gap:8px;margin-bottom:8px;align-items:center;}
+  .mat-row input{border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13.5px;font-family:inherit;}
+  .mat-row button{background:none;border:none;color:var(--red);font-size:16px;font-weight:700;}
+
+  .search-bar{display:flex;gap:10px;margin-bottom:16px;}
+  .search-bar input{flex:1;max-width:320px;padding:10px 14px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;}
+
+  /* Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(11,36,55,.55);display:none;align-items:center;justify-content:center;z-index:200;padding:20px;}
+  .modal-overlay.active{display:flex;}
+  .modal{background:#fff;border-radius:16px;padding:28px;max-width:480px;width:100%;max-height:88vh;overflow-y:auto;}
+  .modal h3{font-size:17px;color:var(--navy);margin-bottom:18px;}
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  .field label{font-size:13px;font-weight:600;color:var(--muted);}
+  .field input, .field select, .field textarea{border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+
+  /* Cliente detail */
+  .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13.5px;font-weight:600;margin-bottom:16px;background:none;border:none;}
+  .cliente-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;flex-wrap:wrap;gap:14px;}
+  .cliente-header h2{font-size:21px;color:var(--navy);}
+  .cliente-header .sub{color:var(--muted);font-size:13.5px;margin-top:4px;}
+  .subtabs{display:flex;gap:6px;border-bottom:2px solid var(--line);margin-bottom:20px;}
+  .subtabs button{background:none;border:none;padding:10px 16px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;}
+  .subtabs button.active{color:var(--amber);border-bottom-color:var(--amber);}
+  .subview{display:none;}
+  .subview.active{display:block;}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .info-item{background:var(--bg);border-radius:10px;padding:14px 16px;}
+  .info-item b{display:block;font-size:12px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.03em;}
+  .info-item span{font-size:15px;font-weight:600;color:var(--navy);}
+
+  @media(max-width:900px){
+    .layout{flex-direction:column;}
+    .sidebar{width:100%;flex-direction:row;overflow-x:auto;}
+    .sb-logo,.sb-foot{display:none;}
+    .sb-nav{display:flex;padding:10px;}
+    .main{padding:22px 18px;}
+    .cards{grid-template-columns:1fr 1fr;}
+    .info-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div id="demoBanner">⚠️ Modo demostración: los datos se guardan solo en este navegador (no hay base de datos conectada todavía).</div>
+
+<div id="loginOverlay" style="position:fixed;inset:0;background:linear-gradient(160deg,#0b2437,#0d2c44);display:flex;align-items:center;justify-content:center;z-index:500;padding:20px;">
+  <div style="background:#fff;border-radius:16px;padding:36px 32px;max-width:360px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.3);">
+    <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;color:#0b2437;margin-bottom:4px;">Grupo Ingeproyect</div>
+    <div style="color:#5b7080;font-size:13.5px;margin-bottom:22px;">Acceso a la intranet</div>
+    <div class="field"><label>Usuario</label><input type="text" id="loginUser" autocomplete="username"></div>
+    <div class="field"><label>Contraseña</label><input type="password" id="loginPass" autocomplete="current-password"></div>
+    <div id="loginError" style="color:#d9483a;font-size:13px;font-weight:600;margin-bottom:10px;display:none;">Usuario o contraseña incorrectos.</div>
+    <button class="btn btn-primary" id="loginBtn" style="width:100%;justify-content:center;margin-top:6px;">Ingresar</button>
+  </div>
+</div>
+
+<div class="layout" id="appLayout" style="display:none;">
+  <aside class="sidebar">
+    <div class="sb-logo">Grupo Ingeproyect<small>INTRANET</small></div>
+    <ul class="sb-nav">
+      <li><button data-view="dashboard" class="active">📊 Dashboard</button></li>
+      <li><button data-view="clientes">👥 Clientes</button></li>
+      <li><button data-view="cotizaciones">📄 Cotización</button></li>
+      <li><button data-view="reportes">📋 Reporte</button></li>
+    </ul>
+    <div class="sb-foot"><a href="index.html">← Volver al sitio</a></div>
+  </aside>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <div class="view-head">
+        <div><h1>Resumen de proyectos</h1><p>Vista general de la operación</p></div>
+      </div>
+      <div class="cards" id="dashCards"></div>
+      <div class="panel">
+        <h3>Últimos trabajos registrados</h3>
+        <table><thead><tr><th>Cliente</th><th>Trabajo</th><th>Fecha</th><th>Estado</th><th>Monto</th></tr></thead>
+        <tbody id="dashTrabajosBody"><tr class="empty-row"><td colspan="5">Cargando...</td></tr></tbody></table>
+      </div>
+      <div class="panel">
+        <h3>Cotizaciones pendientes</h3>
+        <table><thead><tr><th>N°</th><th>Cliente</th><th>Fecha</th><th>Monto</th><th>Estado</th></tr></thead>
+        <tbody id="dashCotizBody"><tr class="empty-row"><td colspan="5">Cargando...</td></tr></tbody></table>
+      </div>
+    </section>
+
+    <!-- CLIENTES (lista) -->
+    <section class="view" id="view-clientes">
+      <div class="view-head">
+        <div><h1>Clientes</h1><p>Gestión de la cartera de clientes</p></div>
+        <button class="btn btn-primary" id="btnNuevoCliente">＋ Nuevo cliente</button>
+      </div>
+      <div class="search-bar"><input type="text" id="buscarCliente" placeholder="Buscar por nombre o RUT..."></div>
+      <div class="panel" style="padding:0;overflow:hidden;">
+        <table><thead><tr><th>Nombre</th><th>RUT</th><th>Teléfono</th><th>Contacto</th><th>Trabajos</th></tr></thead>
+        <tbody id="clientesBody"><tr class="empty-row"><td colspan="5">Cargando...</td></tr></tbody></table>
+      </div>
+    </section>
+
+    <!-- CLIENTE DETALLE -->
+    <section class="view" id="view-cliente-detalle">
+      <button class="back-link" id="btnVolverClientes">← Volver a clientes</button>
+      <div class="cliente-header">
+        <div><h2 id="cdNombre">—</h2><div class="sub" id="cdSub">—</div></div>
+      </div>
+      <div class="subtabs">
+        <button class="subtab-btn active" data-sub="datos">Datos</button>
+        <button class="subtab-btn" data-sub="historico">Histórico de trabajos</button>
+        <button class="subtab-btn" data-sub="reportes">Generar reportes</button>
+      </div>
+
+      <div class="subview active" id="sub-datos">
+        <div class="panel">
+          <div class="info-grid">
+            <div class="info-item"><b>Nombre</b><span id="cdInfoNombre">—</span></div>
+            <div class="info-item"><b>RUT</b><span id="cdInfoRut">—</span></div>
+            <div class="info-item"><b>Dirección</b><span id="cdInfoDireccion">—</span></div>
+            <div class="info-item"><b>Teléfono</b><span id="cdInfoTelefono">—</span></div>
+            <div class="info-item"><b>Contacto</b><span id="cdInfoContacto">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subview" id="sub-historico">
+        <div class="view-head" style="margin-bottom:14px;">
+          <p style="color:var(--muted);font-size:14px;">Registro de todos los trabajos realizados con este cliente.</p>
+          <button class="btn btn-primary btn-sm" id="btnNuevoTrabajo">＋ Registrar trabajo</button>
+        </div>
+        <div class="panel" style="padding:0;overflow:hidden;">
+          <table><thead><tr><th>Descripción</th><th>Fecha</th><th>Estado</th><th>Monto</th></tr></thead>
+          <tbody id="historicoBody"><tr class="empty-row"><td colspan="4">Sin trabajos registrados</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <div class="subview" id="sub-reportes">
+        <div class="view-head" style="margin-bottom:14px;">
+          <p style="color:var(--muted);font-size:14px;">Reportes generados para este cliente.</p>
+          <button class="btn btn-primary btn-sm" id="btnNuevoReporteCliente">＋ Generar reporte</button>
+        </div>
+        <div class="panel" style="padding:0;overflow:hidden;">
+          <table><thead><tr><th>N°</th><th>Título</th><th>Tipo de servicio</th><th>Fecha</th><th>Valor</th><th>Facturación</th><th></th></tr></thead>
+          <tbody id="reportesClienteBody"><tr class="empty-row"><td colspan="7">Sin reportes generados</td></tr></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- COTIZACIONES -->
+    <section class="view" id="view-cotizaciones">
+      <div class="view-head">
+        <div><h1>Cotización</h1><p>Cotizaciones emitidas a clientes</p></div>
+        <button class="btn btn-primary" id="btnNuevaCotizacion">＋ Nueva cotización</button>
+      </div>
+      <div class="panel" style="padding:0;overflow:hidden;">
+        <table><thead><tr><th>N°</th><th>Cliente</th><th>Fecha</th><th>Detalle</th><th>Monto</th><th>Estado</th></tr></thead>
+        <tbody id="cotizacionesBody"><tr class="empty-row"><td colspan="6">Cargando...</td></tr></tbody></table>
+      </div>
+    </section>
+
+    <!-- REPORTES -->
+    <section class="view" id="view-reportes">
+      <div class="view-head">
+        <div><h1>Reporte</h1><p>Todos los reportes generados</p></div>
+        <button class="btn btn-primary" id="btnNuevoReporte">＋ Generar reporte</button>
+      </div>
+      <div class="panel" style="padding:0;overflow:hidden;">
+        <table><thead><tr><th>N°</th><th>Título</th><th>Cliente</th><th>Tipo de servicio</th><th>Fecha</th><th>Valor</th><th>Facturación</th><th></th></tr></thead>
+        <tbody id="reportesBody"><tr class="empty-row"><td colspan="8">Cargando...</td></tr></tbody></table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- MODAL: Nuevo cliente -->
+<div class="modal-overlay" id="modalCliente">
+  <div class="modal">
+    <h3>Nuevo cliente</h3>
+    <div class="field"><label>Nombre del cliente *</label><input type="text" id="fNombre"></div>
+    <div class="field"><label>RUT</label><input type="text" id="fRut" placeholder="12.345.678-9"></div>
+    <div class="field"><label>Dirección</label><input type="text" id="fDireccion"></div>
+    <div class="field"><label>Teléfono</label><input type="text" id="fTelefono"></div>
+    <div class="field"><label>Contacto</label><input type="text" id="fContacto" placeholder="Nombre de la persona de contacto"></div>
+    <div style="font-size:12.5px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 10px;">Acceso al portal del cliente</div>
+    <div class="field"><label>Usuario</label><input type="text" id="fUsuario" placeholder="Ej: rut del cliente sin puntos"></div>
+    <div class="field"><label>Contraseña</label><input type="text" id="fClave" placeholder="Contraseña para que el cliente ingrese"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="modalCliente">Cancelar</button>
+      <button class="btn btn-primary" id="guardarCliente">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Nuevo trabajo -->
+<div class="modal-overlay" id="modalTrabajo">
+  <div class="modal">
+    <h3>Registrar trabajo</h3>
+    <div class="field"><label>Descripción *</label><input type="text" id="tDescripcion"></div>
+    <div class="field"><label>Fecha</label><input type="date" id="tFecha"></div>
+    <div class="field"><label>Estado</label>
+      <select id="tEstado"><option value="completado">Completado</option><option value="en-curso">En curso</option></select>
+    </div>
+    <div class="field"><label>Monto ($)</label><input type="number" id="tMonto"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="modalTrabajo">Cancelar</button>
+      <button class="btn btn-primary" id="guardarTrabajo">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Nueva cotizacion -->
+<div class="modal-overlay" id="modalCotizacion">
+  <div class="modal">
+    <h3>Nueva cotización</h3>
+    <div class="field"><label>Cliente *</label><select id="qCliente"></select></div>
+    <div class="field"><label>N° de cotización</label><input type="text" id="qNumero"></div>
+    <div class="field"><label>Fecha</label><input type="date" id="qFecha"></div>
+    <div class="field"><label>Detalle</label><textarea id="qDetalle" rows="3"></textarea></div>
+    <div class="field"><label>Monto ($)</label><input type="number" id="qMonto"></div>
+    <div class="field"><label>Estado</label>
+      <select id="qEstado"><option value="pendiente">Pendiente</option><option value="aceptada">Aceptada</option><option value="rechazada">Rechazada</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="modalCotizacion">Cancelar</button>
+      <button class="btn btn-primary" id="guardarCotizacion">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Nuevo reporte -->
+<div class="modal-overlay" id="modalReporte">
+  <div class="modal" style="max-width:720px;">
+    <h3>Generar informe de servicio</h3>
+
+    <div style="font-size:12.5px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin:4px 0 10px;">Datos generales</div>
+    <div class="form-row">
+      <div class="field"><label>Cliente *</label><select id="rCliente"></select></div>
+      <div class="field"><label>N° de informe</label><input type="text" id="rNumero" placeholder="Ej: INF-2026-001"></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Título *</label><input type="text" id="rTitulo" placeholder="Ej: Mantenimiento preventivo caldera pirotubular"></div>
+      <div class="field"><label>Tipo de servicio</label>
+        <select id="rTipoServicio">
+          <option>Diseño e ingeniería de salas de bombas</option>
+          <option>Instalación y montaje de calderas</option>
+          <option>Mantenimiento preventivo y correctivo</option>
+          <option>Diagnóstico y eficiencia energética</option>
+          <option>Sistemas hidráulicos y de presión</option>
+          <option>Inspección técnica y certificaciones</option>
+          <option>Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Equipo intervenido</label><input type="text" id="rEquipo" placeholder="Ej: Caldera pirotubular 500 kg/h"></div>
+      <div class="field"><label>Marca / Modelo / N° serie</label><input type="text" id="rMarcaModelo"></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Ubicación / planta</label><input type="text" id="rUbicacion" placeholder="Sala de calderas, planta..."></div>
+      <div class="field"><label>Técnico(s) responsable(s)</label><input type="text" id="rTecnico"></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Fecha de inicio</label><input type="date" id="rFechaInicio"></div>
+      <div class="field"><label>Fecha de término</label><input type="date" id="rFecha"></div>
+    </div>
+
+    <div style="font-size:12.5px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 10px;">Detalle técnico del servicio</div>
+    <div class="field"><label>Diagnóstico y trabajo realizado *</label><textarea id="rContenido" rows="3" placeholder="Describe el diagnóstico, actividades realizadas y hallazgos..."></textarea></div>
+    <div class="field"><label>Mediciones / parámetros técnicos (opcional)</label><textarea id="rMediciones" rows="2" placeholder="Ej: Presión antes 4.2 bar / después 6.0 bar, temperatura, eficiencia, etc."></textarea></div>
+    <div class="field"><label>Recomendaciones</label><textarea id="rRecomendaciones" rows="2" placeholder="Recomendaciones para el cliente / próximos mantenimientos"></textarea></div>
+
+    <div style="font-size:12.5px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 10px;">Materiales y mano de obra (para contabilidad)</div>
+    <div id="materialesRows"></div>
+    <button type="button" class="btn btn-ghost btn-sm" id="btnAgregarMaterial" style="margin-bottom:14px;">＋ Agregar material / repuesto</button>
+    <div class="form-row">
+      <div class="field"><label>Horas de mano de obra</label><input type="number" id="rHoras" step="0.5"></div>
+      <div class="field"><label>Costo mano de obra ($)</label><input type="number" id="rCostoManoObra"></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Valor total del servicio ($) *</label><input type="number" id="rValorTotal"></div>
+      <div class="field"><label>Estado de facturación</label>
+        <select id="rEstadoFacturacion"><option value="pendiente">Pendiente de facturar</option><option value="facturado">Facturado</option><option value="pagado">Pagado</option></select>
+      </div>
+    </div>
+    <div class="field"><label>N° de factura / boleta (si aplica)</label><input type="text" id="rNumeroFactura"></div>
+
+    <div style="font-size:12.5px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 10px;">Cierre</div>
+    <div class="form-row">
+      <div class="field"><label>Estado final del servicio</label>
+        <select id="rEstadoFinal"><option value="aprobado">Aprobado / conforme</option><option value="seguimiento">Requiere seguimiento</option><option value="pendiente-repuesto">Pendiente de repuesto</option><option value="otro">Otro</option></select>
+      </div>
+      <div class="field"><label>Recibido conforme por (cliente)</label><input type="text" id="rConformidad" placeholder="Nombre de quien recibe el servicio"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="modalReporte">Cancelar</button>
+      <button class="btn btn-primary" id="guardarReporte">Guardar informe</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// =========================================================================
+// CONFIGURACIÓN DE SUPABASE
+// Reemplaza estos dos valores con los de tu proyecto de Supabase
+// (Project Settings > API > Project URL / anon public key).
+// Mientras queden los valores de ejemplo, la app funciona en MODO DEMO:
+// los datos se guardan solo en este navegador y no se comparten entre equipos.
+// =========================================================================
+const supabaseConfig = {
+  url: "TU_SUPABASE_URL",
+  anonKey: "TU_SUPABASE_ANON_KEY"
+};
+const MODO_DEMO = supabaseConfig.url === "TU_SUPABASE_URL";
+
+let supabase = null;
+async function getClient(){
+  if (MODO_DEMO) return null;
+  if (supabase) return supabase;
+  const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+  supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
+  return supabase;
+}
+
+// ---- Almacenamiento en memoria para MODO_DEMO ----
+const demoDB = {
+  clientes: [],
+  historico_trabajos: [],
+  cotizaciones: [],
+  reportes: []
+};
+function uid(){ return 'demo-' + Math.random().toString(36).slice(2, 10); }
+
+function escapeHtml(s){
+  return (s === null || s === undefined ? '' : String(s))
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtMoney(n){
+  if (n === null || n === undefined || n === '') return '—';
+  return '$' + Number(n).toLocaleString('es-CL');
+}
+function fmtDate(d){
+  if (!d) return '—';
+  return d;
+}
+
+// ---- Capa de datos ----
+async function listClientes(){
+  if (MODO_DEMO) return [...demoDB.clientes].sort((a,b)=> a.nombre.localeCompare(b.nombre));
+  const c = await getClient();
+  const { data, error } = await c.from('clientes').select('*').order('nombre');
+  if (error) throw error;
+  return data;
+}
+async function createCliente(obj){
+  if (MODO_DEMO){
+    const row = { id: uid(), created_at: new Date().toISOString(), ...obj };
+    demoDB.clientes.push(row);
+    return row;
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('clientes').insert(obj).select().single();
+  if (error) throw error;
+  return data;
+}
+async function listTrabajos(clienteId){
+  if (MODO_DEMO) return demoDB.historico_trabajos.filter(t => t.cliente_id === clienteId).sort((a,b)=> (b.fecha||'').localeCompare(a.fecha||''));
+  const c = await getClient();
+  const { data, error } = await c.from('historico_trabajos').select('*').eq('cliente_id', clienteId).order('fecha', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+async function listTrabajosRecientes(limit){
+  if (MODO_DEMO){
+    return [...demoDB.historico_trabajos]
+      .sort((a,b)=> (b.created_at||'').localeCompare(a.created_at||''))
+      .slice(0, limit)
+      .map(t => ({ ...t, clientes: demoDB.clientes.find(c=>c.id===t.cliente_id) }));
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('historico_trabajos').select('*, clientes(nombre)').order('created_at', { ascending: false }).limit(limit);
+  if (error) throw error;
+  return data;
+}
+async function createTrabajo(obj){
+  if (MODO_DEMO){
+    const row = { id: uid(), created_at: new Date().toISOString(), ...obj };
+    demoDB.historico_trabajos.push(row);
+    return row;
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('historico_trabajos').insert(obj).select().single();
+  if (error) throw error;
+  return data;
+}
+async function listCotizaciones(){
+  if (MODO_DEMO){
+    return [...demoDB.cotizaciones].sort((a,b)=> (b.created_at||'').localeCompare(a.created_at||''))
+      .map(q => ({ ...q, clientes: demoDB.clientes.find(c=>c.id===q.cliente_id) }));
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('cotizaciones').select('*, clientes(nombre)').order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+async function createCotizacion(obj){
+  if (MODO_DEMO){
+    const row = { id: uid(), created_at: new Date().toISOString(), ...obj };
+    demoDB.cotizaciones.push(row);
+    return row;
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('cotizaciones').insert(obj).select().single();
+  if (error) throw error;
+  return data;
+}
+async function listReportes(clienteId){
+  if (MODO_DEMO){
+    let rows = [...demoDB.reportes];
+    if (clienteId) rows = rows.filter(r => r.cliente_id === clienteId);
+    return rows.sort((a,b)=> (b.created_at||'').localeCompare(a.created_at||''))
+      .map(r => ({ ...r, clientes: demoDB.clientes.find(c=>c.id===r.cliente_id), historico_trabajos: demoDB.historico_trabajos.find(t=>t.id===r.trabajo_id) }));
+  }
+  const c = await getClient();
+  let query = c.from('reportes').select('*, clientes(nombre), historico_trabajos(descripcion)').order('created_at', { ascending: false });
+  if (clienteId) query = query.eq('cliente_id', clienteId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data;
+}
+async function createReporte(obj){
+  if (MODO_DEMO){
+    const row = { id: uid(), created_at: new Date().toISOString(), ...obj };
+    demoDB.reportes.push(row);
+    return row;
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('reportes').insert(obj).select().single();
+  if (error) throw error;
+  return data;
+}
+
+// ---- Navegación ----
+let clienteActivo = null;
+
+function showView(id){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  document.querySelectorAll('.sb-nav button').forEach(b => b.classList.toggle('active', b.dataset.view === id));
+}
+document.querySelectorAll('.sb-nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    showView(btn.dataset.view);
+    if (btn.dataset.view === 'dashboard') renderDashboard();
+    if (btn.dataset.view === 'clientes') renderClientes();
+    if (btn.dataset.view === 'cotizaciones') renderCotizaciones();
+    if (btn.dataset.view === 'reportes') renderReportes();
+  });
+});
+
+function openModal(id){ document.getElementById(id).classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal(b.dataset.close)));
+
+// ---- Dashboard ----
+async function renderDashboard(){
+  const [clientes, trabajos, cotizaciones] = await Promise.all([listClientes(), listTrabajosRecientes(6), listCotizaciones()]);
+  const pendientes = cotizaciones.filter(q => q.estado === 'pendiente');
+  const totalFacturado = trabajos.reduce((sum, t) => sum + (Number(t.monto) || 0), 0);
+
+  document.getElementById('dashCards').innerHTML = `
+    <div class="card"><div class="lbl">Clientes</div><div class="val">${clientes.length}</div></div>
+    <div class="card"><div class="lbl">Cotizaciones pendientes</div><div class="val">${pendientes.length}</div></div>
+    <div class="card"><div class="lbl">Trabajos registrados</div><div class="val">${trabajos.length}</div></div>
+    <div class="card"><div class="lbl">Total últimos trabajos</div><div class="val">${fmtMoney(totalFacturado)}</div></div>
+  `;
+
+  const tbody = document.getElementById('dashTrabajosBody');
+  tbody.innerHTML = trabajos.length ? trabajos.map(t => `
+    <tr><td>${escapeHtml(t.clientes ? t.clientes.nombre : '—')}</td><td>${escapeHtml(t.descripcion)}</td><td>${fmtDate(t.fecha)}</td>
+    <td><span class="badge ${t.estado}">${escapeHtml(t.estado || '')}</span></td><td>${fmtMoney(t.monto)}</td></tr>
+  `).join('') : '<tr class="empty-row"><td colspan="5">Aún no hay trabajos registrados.</td></tr>';
+
+  const qbody = document.getElementById('dashCotizBody');
+  const qRows = pendientes.slice(0, 6);
+  qbody.innerHTML = qRows.length ? qRows.map(q => `
+    <tr><td>${escapeHtml(q.numero || '—')}</td><td>${escapeHtml(q.clientes ? q.clientes.nombre : '—')}</td><td>${fmtDate(q.fecha)}</td>
+    <td>${fmtMoney(q.monto)}</td><td><span class="badge ${q.estado}">${escapeHtml(q.estado)}</span></td></tr>
+  `).join('') : '<tr class="empty-row"><td colspan="5">No hay cotizaciones pendientes.</td></tr>';
+}
+
+// ---- Clientes ----
+let cacheClientes = [];
+async function renderClientes(){
+  cacheClientes = await listClientes();
+  pintarClientes(cacheClientes);
+}
+async function pintarClientes(lista){
+  const tbody = document.getElementById('clientesBody');
+  if (!lista.length){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Aún no hay clientes registrados. Usa el botón "＋ Nuevo cliente".</td></tr>';
+    return;
+  }
+  const withCounts = await Promise.all(lista.map(async c => ({ c, n: (await listTrabajos(c.id)).length })));
+  tbody.innerHTML = withCounts.map(({c, n}) => `
+    <tr class="clickable" data-id="${c.id}">
+      <td><b>${escapeHtml(c.nombre)}</b></td><td>${escapeHtml(c.rut || '—')}</td><td>${escapeHtml(c.telefono || '—')}</td>
+      <td>${escapeHtml(c.contacto || '—')}</td><td>${n}</td>
+    </tr>`).join('');
+  tbody.querySelectorAll('tr.clickable').forEach(row => {
+    row.addEventListener('click', () => abrirCliente(row.dataset.id));
+  });
+}
+document.getElementById('buscarCliente').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  const filtered = cacheClientes.filter(c => (c.nombre||'').toLowerCase().includes(q) || (c.rut||'').toLowerCase().includes(q));
+  pintarClientes(filtered);
+});
+document.getElementById('btnNuevoCliente').addEventListener('click', () => openModal('modalCliente'));
+document.getElementById('guardarCliente').addEventListener('click', async () => {
+  const nombre = document.getElementById('fNombre').value.trim();
+  if (!nombre) { alert('El nombre del cliente es obligatorio.'); return; }
+  await createCliente({
+    nombre,
+    rut: document.getElementById('fRut').value.trim(),
+    direccion: document.getElementById('fDireccion').value.trim(),
+    telefono: document.getElementById('fTelefono').value.trim(),
+    contacto: document.getElementById('fContacto').value.trim(),
+    usuario: document.getElementById('fUsuario').value.trim() || null,
+    clave: document.getElementById('fClave').value.trim() || null
+  });
+  ['fNombre','fRut','fDireccion','fTelefono','fContacto','fUsuario','fClave'].forEach(id => document.getElementById(id).value = '');
+  closeModal('modalCliente');
+  renderClientes();
+});
+
+// ---- Detalle cliente ----
+async function abrirCliente(id){
+  clienteActivo = cacheClientes.find(c => c.id === id);
+  if (!clienteActivo) return;
+  document.getElementById('cdNombre').textContent = clienteActivo.nombre;
+  document.getElementById('cdSub').textContent = clienteActivo.contacto ? ('Contacto: ' + clienteActivo.contacto) : '';
+  document.getElementById('cdInfoNombre').textContent = clienteActivo.nombre || '—';
+  document.getElementById('cdInfoRut').textContent = clienteActivo.rut || '—';
+  document.getElementById('cdInfoDireccion').textContent = clienteActivo.direccion || '—';
+  document.getElementById('cdInfoTelefono').textContent = clienteActivo.telefono || '—';
+  document.getElementById('cdInfoContacto').textContent = clienteActivo.contacto || '—';
+
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-cliente-detalle').classList.add('active');
+  document.querySelectorAll('.subtab-btn').forEach(b => b.classList.toggle('active', b.dataset.sub === 'datos'));
+  document.querySelectorAll('.subview').forEach(v => v.classList.toggle('active', v.id === 'sub-datos'));
+
+  await pintarHistorico();
+  await pintarReportesCliente();
+}
+document.getElementById('btnVolverClientes').addEventListener('click', () => { showView('clientes'); renderClientes(); });
+document.querySelectorAll('.subtab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.subtab-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.subview').forEach(v => v.classList.toggle('active', v.id === 'sub-' + btn.dataset.sub));
+  });
+});
+
+async function pintarHistorico(){
+  const trabajos = await listTrabajos(clienteActivo.id);
+  const tbody = document.getElementById('historicoBody');
+  tbody.innerHTML = trabajos.length ? trabajos.map(t => `
+    <tr><td>${escapeHtml(t.descripcion)}</td><td>${fmtDate(t.fecha)}</td>
+    <td><span class="badge ${t.estado}">${escapeHtml(t.estado || '')}</span></td><td>${fmtMoney(t.monto)}</td></tr>
+  `).join('') : '<tr class="empty-row"><td colspan="4">Sin trabajos registrados para este cliente.</td></tr>';
+}
+document.getElementById('btnNuevoTrabajo').addEventListener('click', () => openModal('modalTrabajo'));
+document.getElementById('guardarTrabajo').addEventListener('click', async () => {
+  const descripcion = document.getElementById('tDescripcion').value.trim();
+  if (!descripcion) { alert('La descripción es obligatoria.'); return; }
+  await createTrabajo({
+    cliente_id: clienteActivo.id,
+    descripcion,
+    fecha: document.getElementById('tFecha').value || null,
+    estado: document.getElementById('tEstado').value,
+    monto: document.getElementById('tMonto').value ? Number(document.getElementById('tMonto').value) : null
+  });
+  ['tDescripcion','tFecha','tMonto'].forEach(id => document.getElementById(id).value = '');
+  closeModal('modalTrabajo');
+  pintarHistorico();
+});
+
+async function pintarReportesCliente(){
+  const reportes = await listReportes(clienteActivo.id);
+  const tbody = document.getElementById('reportesClienteBody');
+  tbody.innerHTML = reportes.length ? reportes.map(r => `
+    <tr>
+      <td>${escapeHtml(r.numero || '—')}</td><td>${escapeHtml(r.titulo)}</td><td>${escapeHtml(r.tipo_servicio || '—')}</td>
+      <td>${fmtDate(r.fecha)}</td><td>${fmtMoney(r.valor_total)}</td>
+      <td><span class="badge ${r.estado_facturacion || 'pendiente'}">${escapeHtml(r.estado_facturacion || 'pendiente')}</span></td>
+      <td><button class="btn btn-ghost btn-sm" data-ver-informe="${r.id}">Ver</button></td>
+    </tr>
+  `).join('') : '<tr class="empty-row"><td colspan="7">Sin reportes generados para este cliente.</td></tr>';
+  tbody.querySelectorAll('[data-ver-informe]').forEach(b => b.addEventListener('click', () => verInforme(b.dataset.verInforme, reportes)));
+}
+document.getElementById('btnNuevoReporteCliente').addEventListener('click', async () => {
+  resetFormReporte();
+  await poblarSelectClientes('rCliente');
+  document.getElementById('rCliente').value = clienteActivo.id;
+  document.getElementById('rCliente').disabled = true;
+  openModal('modalReporte');
+});
+
+// ---- Cotizaciones ----
+async function poblarSelectClientes(selectId){
+  const clientes = cacheClientes.length ? cacheClientes : await listClientes();
+  const sel = document.getElementById(selectId);
+  sel.innerHTML = clientes.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`).join('');
+  sel.disabled = false;
+}
+async function renderCotizaciones(){
+  const rows = await listCotizaciones();
+  const tbody = document.getElementById('cotizacionesBody');
+  tbody.innerHTML = rows.length ? rows.map(q => `
+    <tr><td>${escapeHtml(q.numero || '—')}</td><td>${escapeHtml(q.clientes ? q.clientes.nombre : '—')}</td><td>${fmtDate(q.fecha)}</td>
+    <td>${escapeHtml(q.detalle || '—')}</td><td>${fmtMoney(q.monto)}</td><td><span class="badge ${q.estado}">${escapeHtml(q.estado)}</span></td></tr>
+  `).join('') : '<tr class="empty-row"><td colspan="6">Aún no hay cotizaciones registradas.</td></tr>';
+}
+document.getElementById('btnNuevaCotizacion').addEventListener('click', async () => {
+  await poblarSelectClientes('qCliente');
+  openModal('modalCotizacion');
+});
+document.getElementById('guardarCotizacion').addEventListener('click', async () => {
+  const clienteId = document.getElementById('qCliente').value;
+  if (!clienteId) { alert('Debes crear al menos un cliente primero.'); return; }
+  await createCotizacion({
+    cliente_id: clienteId,
+    numero: document.getElementById('qNumero').value.trim(),
+    fecha: document.getElementById('qFecha').value || null,
+    detalle: document.getElementById('qDetalle').value.trim(),
+    monto: document.getElementById('qMonto').value ? Number(document.getElementById('qMonto').value) : null,
+    estado: document.getElementById('qEstado').value
+  });
+  ['qNumero','qFecha','qDetalle','qMonto'].forEach(id => document.getElementById(id).value = '');
+  closeModal('modalCotizacion');
+  renderCotizaciones();
+});
+
+// ---- Reportes ----
+async function renderReportes(){
+  const rows = await listReportes(null);
+  const tbody = document.getElementById('reportesBody');
+  tbody.innerHTML = rows.length ? rows.map(r => `
+    <tr>
+      <td>${escapeHtml(r.numero || '—')}</td><td>${escapeHtml(r.titulo)}</td><td>${escapeHtml(r.clientes ? r.clientes.nombre : '—')}</td>
+      <td>${escapeHtml(r.tipo_servicio || '—')}</td><td>${fmtDate(r.fecha)}</td><td>${fmtMoney(r.valor_total)}</td>
+      <td><span class="badge ${r.estado_facturacion || 'pendiente'}">${escapeHtml(r.estado_facturacion || 'pendiente')}</span></td>
+      <td><button class="btn btn-ghost btn-sm" data-ver-informe="${r.id}">Ver</button></td>
+    </tr>
+  `).join('') : '<tr class="empty-row"><td colspan="8">Aún no hay reportes generados.</td></tr>';
+  tbody.querySelectorAll('[data-ver-informe]').forEach(b => b.addEventListener('click', () => verInforme(b.dataset.verInforme, rows)));
+}
+document.getElementById('btnNuevoReporte').addEventListener('click', async () => {
+  resetFormReporte();
+  await poblarSelectClientes('rCliente');
+  document.getElementById('rCliente').disabled = false;
+  openModal('modalReporte');
+});
+
+// ---- Materiales dinámicos dentro del formulario de reporte ----
+function agregarFilaMaterial(item = '', cantidad = '', costo = ''){
+  const wrap = document.getElementById('materialesRows');
+  const row = document.createElement('div');
+  row.className = 'mat-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Material / repuesto" class="mat-item" value="${escapeHtml(item)}">
+    <input type="number" placeholder="Cant." class="mat-cant" value="${escapeHtml(cantidad)}">
+    <input type="number" placeholder="Costo unit." class="mat-costo" value="${escapeHtml(costo)}">
+    <button type="button" title="Quitar">✕</button>
+  `;
+  row.querySelector('button').addEventListener('click', () => row.remove());
+  wrap.appendChild(row);
+}
+document.getElementById('btnAgregarMaterial').addEventListener('click', () => agregarFilaMaterial());
+
+function leerMateriales(){
+  return Array.from(document.querySelectorAll('#materialesRows .mat-row')).map(row => ({
+    item: row.querySelector('.mat-item').value.trim(),
+    cantidad: row.querySelector('.mat-cant').value ? Number(row.querySelector('.mat-cant').value) : null,
+    costo_unitario: row.querySelector('.mat-costo').value ? Number(row.querySelector('.mat-costo').value) : null
+  })).filter(m => m.item);
+}
+
+function resetFormReporte(){
+  ['rNumero','rTitulo','rEquipo','rMarcaModelo','rUbicacion','rTecnico','rFechaInicio','rFecha',
+   'rContenido','rMediciones','rRecomendaciones','rHoras','rCostoManoObra','rValorTotal',
+   'rNumeroFactura','rConformidad'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('rTipoServicio').selectedIndex = 0;
+  document.getElementById('rEstadoFacturacion').value = 'pendiente';
+  document.getElementById('rEstadoFinal').value = 'aprobado';
+  document.getElementById('materialesRows').innerHTML = '';
+}
+
+document.getElementById('guardarReporte').addEventListener('click', async () => {
+  const clienteId = document.getElementById('rCliente').value;
+  const titulo = document.getElementById('rTitulo').value.trim();
+  const contenido = document.getElementById('rContenido').value.trim();
+  if (!clienteId) { alert('Debes crear al menos un cliente primero.'); return; }
+  if (!titulo) { alert('El título es obligatorio.'); return; }
+  if (!contenido) { alert('Describe el diagnóstico / trabajo realizado.'); return; }
+
+  const materiales = leerMateriales();
+  await createReporte({
+    cliente_id: clienteId,
+    numero: document.getElementById('rNumero').value.trim(),
+    titulo,
+    tipo_servicio: document.getElementById('rTipoServicio').value,
+    equipo: document.getElementById('rEquipo').value.trim(),
+    marca_modelo: document.getElementById('rMarcaModelo').value.trim(),
+    ubicacion: document.getElementById('rUbicacion').value.trim(),
+    tecnico: document.getElementById('rTecnico').value.trim(),
+    fecha_inicio: document.getElementById('rFechaInicio').value || null,
+    fecha: document.getElementById('rFecha').value || null,
+    contenido,
+    mediciones: document.getElementById('rMediciones').value.trim(),
+    recomendaciones: document.getElementById('rRecomendaciones').value.trim(),
+    materiales,
+    horas: document.getElementById('rHoras').value ? Number(document.getElementById('rHoras').value) : null,
+    costo_mano_obra: document.getElementById('rCostoManoObra').value ? Number(document.getElementById('rCostoManoObra').value) : null,
+    valor_total: document.getElementById('rValorTotal').value ? Number(document.getElementById('rValorTotal').value) : null,
+    estado_facturacion: document.getElementById('rEstadoFacturacion').value,
+    numero_factura: document.getElementById('rNumeroFactura').value.trim(),
+    estado_final: document.getElementById('rEstadoFinal').value,
+    conformidad: document.getElementById('rConformidad').value.trim()
+  });
+  document.getElementById('rCliente').disabled = false;
+  closeModal('modalReporte');
+  if (document.getElementById('view-cliente-detalle').classList.contains('active')) {
+    pintarReportesCliente();
+  } else {
+    renderReportes();
+  }
+});
+
+// ---- Ver / imprimir informe ----
+function verInforme(id, rowsCache){
+  const r = rowsCache.find(x => x.id === id);
+  if (!r) return;
+  const clienteNombre = r.clientes ? r.clientes.nombre : (clienteActivo ? clienteActivo.nombre : '—');
+  const materiales = Array.isArray(r.materiales) ? r.materiales : [];
+  const totalMateriales = materiales.reduce((s,m) => s + ((Number(m.cantidad)||0) * (Number(m.costo_unitario)||0)), 0);
+  const html = `
+    <html><head><title>Informe ${escapeHtml(r.numero || '')} - ${escapeHtml(r.titulo)}</title>
+    <style>
+      body{font-family:Arial,sans-serif;color:#1c2b36;max-width:760px;margin:40px auto;padding:0 20px;}
+      h1{font-size:20px;color:#0b2437;border-bottom:3px solid #ff7a30;padding-bottom:10px;}
+      h2{font-size:14px;color:#ff7a30;text-transform:uppercase;letter-spacing:.04em;margin-top:26px;}
+      table{width:100%;border-collapse:collapse;margin-top:8px;}
+      td,th{border:1px solid #ddd;padding:8px;font-size:13px;text-align:left;}
+      .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13.5px;}
+      .grid div b{display:block;font-size:11px;color:#5b7080;text-transform:uppercase;}
+      .total{font-weight:bold;font-size:15px;margin-top:10px;text-align:right;}
+      @media print{ button{display:none;} }
+    </style></head><body>
+    <h1>Informe de servicio ${escapeHtml(r.numero ? '— ' + r.numero : '')}</h1>
+    <div class="grid">
+      <div><b>Cliente</b>${escapeHtml(clienteNombre)}</div>
+      <div><b>Tipo de servicio</b>${escapeHtml(r.tipo_servicio || '—')}</div>
+      <div><b>Equipo intervenido</b>${escapeHtml(r.equipo || '—')}</div>
+      <div><b>Marca / modelo</b>${escapeHtml(r.marca_modelo || '—')}</div>
+      <div><b>Ubicación</b>${escapeHtml(r.ubicacion || '—')}</div>
+      <div><b>Técnico responsable</b>${escapeHtml(r.tecnico || '—')}</div>
+      <div><b>Fecha inicio</b>${fmtDate(r.fecha_inicio)}</div>
+      <div><b>Fecha término</b>${fmtDate(r.fecha)}</div>
+    </div>
+    <h2>Diagnóstico y trabajo realizado</h2>
+    <p>${escapeHtml(r.contenido || '—').replace(/\n/g,'<br>')}</p>
+    ${r.mediciones ? '<h2>Mediciones / parámetros técnicos</h2><p>' + escapeHtml(r.mediciones).replace(/\n/g,'<br>') + '</p>' : ''}
+    ${r.recomendaciones ? '<h2>Recomendaciones</h2><p>' + escapeHtml(r.recomendaciones).replace(/\n/g,'<br>') + '</p>' : ''}
+    ${materiales.length ? `<h2>Materiales y repuestos utilizados</h2>
+    <table><tr><th>Ítem</th><th>Cantidad</th><th>Costo unitario</th><th>Subtotal</th></tr>
+    ${materiales.map(m => `<tr><td>${escapeHtml(m.item)}</td><td>${escapeHtml(m.cantidad)}</td><td>${fmtMoney(m.costo_unitario)}</td><td>${fmtMoney((Number(m.cantidad)||0)*(Number(m.costo_unitario)||0))}</td></tr>`).join('')}
+    </table>` : ''}
+    <h2>Resumen económico (uso interno / contabilidad)</h2>
+    <div class="grid">
+      <div><b>Horas de mano de obra</b>${r.horas ?? '—'}</div>
+      <div><b>Costo mano de obra</b>${fmtMoney(r.costo_mano_obra)}</div>
+      <div><b>Costo materiales</b>${fmtMoney(totalMateriales)}</div>
+      <div><b>Estado de facturación</b>${escapeHtml(r.estado_facturacion || 'pendiente')}</div>
+      <div><b>N° factura/boleta</b>${escapeHtml(r.numero_factura || '—')}</div>
+      <div><b>Estado final del servicio</b>${escapeHtml(r.estado_final || '—')}</div>
+    </div>
+    <div class="total">Valor total del servicio: ${fmtMoney(r.valor_total)}</div>
+    <h2>Conformidad</h2>
+    <p>Recibido conforme por: ${escapeHtml(r.conformidad || '_______________________')}</p>
+    <br><button onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+    </body></html>
+  `;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+}
+
+// ---- Login ----
+const CREDENCIALES = { usuario: "1234567890", clave: "Paulita123#" };
+
+function intentarLogin(){
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  if (u === CREDENCIALES.usuario && p === CREDENCIALES.clave){
+    err.style.display = 'none';
+    sessionStorage.setItem('ingeproyect_auth', '1');
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('appLayout').style.display = 'flex';
+    if (MODO_DEMO) document.getElementById('demoBanner').style.display = 'block';
+    renderDashboard();
+  } else {
+    err.style.display = 'block';
+  }
+}
+document.getElementById('loginBtn').addEventListener('click', intentarLogin);
+document.getElementById('loginPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') intentarLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', (e) => { if (e.key === 'Enter') intentarLogin(); });
+
+// ---- Init ----
+if (sessionStorage.getItem('ingeproyect_auth') === '1'){
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('appLayout').style.display = 'flex';
+  if (MODO_DEMO) document.getElementById('demoBanner').style.display = 'block';
+  renderDashboard();
+}
+</script>
+</body>
+</html>
