@@ -350,9 +350,9 @@ document.getElementById('btnEnviarReporte').addEventListener('click', async () =
   const clienteId = document.getElementById('nCliente').value;
   const titulo = document.getElementById('nTitulo').value.trim();
   const contenido = document.getElementById('nContenido').value.trim();
-  if (!clienteId) { alert('Selecciona un cliente.'); return; }
-  if (!titulo) { alert('El título es obligatorio.'); return; }
-  if (!contenido) { alert('Describe el trabajo realizado.'); return; }
+  if (!clienteId) { mostrarToast('⚠ Selecciona un cliente.'); return; }
+  if (!titulo) { mostrarToast('⚠ El título es obligatorio.'); return; }
+  if (!contenido) { mostrarToast('⚠ Describe el trabajo realizado.'); return; }
 
   await createReporte({
     cliente_id: clienteId,
@@ -382,9 +382,23 @@ document.getElementById('btnEnviarReporte').addEventListener('click', async () =
   document.getElementById('nTipoServicio').selectedIndex = 0;
   document.getElementById('materialesRowsApp').innerHTML = '';
   document.getElementById('nFecha').value = new Date().toISOString().slice(0,10);
-  alert('Reporte enviado. Quedará visible para el cliente una vez que sea validado.');
   mostrarSeccion('mis');
+  mostrarToast('✔ Reporte enviado. Quedará visible para el cliente una vez que sea validado.');
 });
+
+function mostrarToast(msg){
+  let t = document.getElementById('toastMsg');
+  if (!t){
+    t = document.createElement('div');
+    t.id = 'toastMsg';
+    t.style.cssText = 'position:fixed;left:16px;right:16px;bottom:80px;background:#106b3c;color:#fff;padding:12px 16px;border-radius:10px;font-size:13.5px;font-weight:600;z-index:300;box-shadow:0 8px 20px rgba(0,0,0,.2);';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
 
 // ---- Mis reportes ----
 function badgeValidacion(v){
