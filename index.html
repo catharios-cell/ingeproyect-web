@@ -76,11 +76,11 @@
   /* Nosotros */
   .about-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:start;}
   .about-grid p.lead{font-size:17px;color:var(--muted);margin-bottom:28px;}
-  .mv-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
-  .mv-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px;margin-bottom:0;box-shadow:0 4px 18px rgba(15,45,70,.05);}
-  .mv-card .icon{font-size:24px;margin-bottom:10px;}
-  .mv-card h3{font-size:18px;color:var(--navy);margin-bottom:8px;}
-  .mv-card p{font-size:15px;color:var(--muted);}
+  .mv-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:32px;}
+  .mv-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 28px;margin-bottom:0;box-shadow:0 4px 18px rgba(15,45,70,.05);display:flex;align-items:flex-start;gap:18px;}
+  .mv-card .icon{font-size:26px;flex-shrink:0;line-height:1;}
+  .mv-card h3{font-size:17px;color:var(--navy);margin-bottom:6px;}
+  .mv-card p{font-size:14.5px;color:var(--muted);line-height:1.5;}
   .values-list{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .value-chip{display:flex;align-items:flex-start;gap:12px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:16px;}
   .value-chip .ic{font-size:20px;}
@@ -203,19 +203,6 @@
         <span class="eyebrow">Quiénes somos</span>
         <h2 style="font-size:clamp(24px,3vw,32px);color:var(--navy);margin-bottom:18px;">Una empresa comprometida con la excelencia en ingeniería</h2>
         <p class="lead">Somos un equipo altamente capacitado que trabaja con tecnología de vanguardia para garantizar la eficiencia y sostenibilidad de cada proyecto.</p>
-
-        <div class="mv-grid">
-        <div class="mv-card">
-          <div class="icon">🎯</div>
-          <h3>Misión</h3>
-          <p>Ofrecer soluciones de ingeniería innovadoras y de alta calidad en el diseño, construcción y mantenimiento de salas de bombas y calderas, garantizando eficiencia energética y sostenibilidad, con un equipo altamente capacitado y un entorno de trabajo colaborativo y responsable.</p>
-        </div>
-        <div class="mv-card">
-          <div class="icon">🔭</div>
-          <h3>Visión</h3>
-          <p>Ser reconocidos como líderes en ingeniería especializada en salas de bombas y calderas, impulsando la innovación y la eficiencia energética, y siendo la opción preferida de nuestros clientes en el desarrollo sostenible de la industria.</p>
-        </div>
-        </div>
       </div>
 
       <div>
@@ -226,6 +213,19 @@
           <div class="value-chip"><span class="ic">💡</span><div><b>Innovación</b><span>Tecnología de vanguardia</span></div></div>
           <div class="value-chip" style="grid-column:1/-1;"><span class="ic">🛡️</span><div><b>Seguridad</b><span>Proyectos seguros y confiables</span></div></div>
         </div>
+      </div>
+    </div>
+
+    <div class="mv-grid">
+      <div class="mv-card">
+        <div class="icon">🎯</div>
+        <h3>Misión</h3>
+        <p>Ofrecer soluciones de ingeniería innovadoras y de alta calidad en el diseño, construcción y mantenimiento de salas de bombas y calderas, garantizando eficiencia energética y sostenibilidad, con un equipo altamente capacitado y un entorno de trabajo colaborativo y responsable.</p>
+      </div>
+      <div class="mv-card">
+        <div class="icon">🔭</div>
+        <h3>Visión</h3>
+        <p>Ser reconocidos como líderes en ingeniería especializada en salas de bombas y calderas, impulsando la innovación y la eficiencia energética, y siendo la opción preferida de nuestros clientes en el desarrollo sostenible de la industria.</p>
       </div>
     </div>
   </div>
