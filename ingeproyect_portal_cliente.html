@@ -201,8 +201,16 @@ function verInformeCliente(id, rowsCache){
       h2{font-size:14px;color:#ff7a30;text-transform:uppercase;letter-spacing:.04em;margin-top:26px;}
       .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13.5px;}
       .grid div b{display:block;font-size:11px;color:#5b7080;text-transform:uppercase;}
+      .letterhead{display:flex;align-items:center;gap:14px;margin-bottom:22px;}
+      .letterhead img{width:52px;height:52px;border-radius:12px;flex-shrink:0;}
+      .letterhead .name{font-weight:800;font-size:17px;color:#0b2437;}
+      .letterhead .tag{font-size:11.5px;color:#5b7080;text-transform:uppercase;letter-spacing:.03em;}
       @media print{ button{display:none;} }
     </style></head><body>
+    <div class="letterhead">
+      <img src="https://catharios-cell.github.io/ingeproyect-web/logo-512.png" alt="Grupo Ingeproyect SpA">
+      <div><div class="name">Grupo Ingeproyect SpA</div><div class="tag">Salas de Bombas y Calderas · Mantención Industrial</div></div>
+    </div>
     <h1>Informe de servicio ${escapeHtml(r.numero ? '— ' + r.numero : '')}</h1>
     <div class="grid">
       <div><b>Tipo de servicio</b>${escapeHtml(r.tipo_servicio || '—')}</div>
