@@ -71,7 +71,7 @@
   .badge.rechazado{background:#fbe0dd;color:#a12b1d;}
 
   .mat-row{display:grid;grid-template-columns:1fr 90px 120px 32px;gap:8px;margin-bottom:8px;align-items:center;}
-  .mat-row input{border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13.5px;font-family:inherit;}
+  .mat-row input, .mat-row select{border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13.5px;font-family:inherit;background:#fff;}
   .mat-row button{background:none;border:none;color:var(--red);font-size:16px;font-weight:700;}
 
   .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
@@ -495,8 +495,6 @@
   </div>
 </div>
 
-<datalist id="listaInventario"></datalist>
-
 <script type="module">
 // =========================================================================
 // CONFIGURACIÓN DE SUPABASE
@@ -532,25 +530,69 @@ const demoDB = {
   ],
   inventario: [
     { id: 'inv-1', nombre: 'Sello mecánico estándar', categoria: 'bombas', unidad: 'unidad', stock: 12, stock_minimo: 4, costo_referencia: 18000 },
-    { id: 'inv-2', nombre: 'Empaquetadura de grafito', categoria: 'bombas', unidad: 'metro', stock: 25, stock_minimo: 10, costo_referencia: 6000 },
-    { id: 'inv-3', nombre: 'Rodamiento SKF 6205', categoria: 'bombas', unidad: 'unidad', stock: 8, stock_minimo: 4, costo_referencia: 15000 },
-    { id: 'inv-4', nombre: 'Correa trapezoidal A-38', categoria: 'bombas', unidad: 'unidad', stock: 10, stock_minimo: 3, costo_referencia: 9000 },
-    { id: 'inv-5', nombre: 'Acople flexible', categoria: 'bombas', unidad: 'unidad', stock: 6, stock_minimo: 2, costo_referencia: 25000 },
-    { id: 'inv-6', nombre: 'Impulsor de bomba centrífuga', categoria: 'bombas', unidad: 'unidad', stock: 3, stock_minimo: 2, costo_referencia: 65000 },
-    { id: 'inv-7', nombre: 'Válvula de retención 2"', categoria: 'bombas', unidad: 'unidad', stock: 5, stock_minimo: 2, costo_referencia: 32000 },
-    { id: 'inv-8', nombre: 'Válvula de compuerta 2"', categoria: 'bombas', unidad: 'unidad', stock: 5, stock_minimo: 2, costo_referencia: 28000 },
-    { id: 'inv-9', nombre: 'Electrodo de soldadura 6013', categoria: 'calderas', unidad: 'kg', stock: 20, stock_minimo: 5, costo_referencia: 4500 },
-    { id: 'inv-10', nombre: 'Empaquetadura para mirilla de caldera', categoria: 'calderas', unidad: 'unidad', stock: 8, stock_minimo: 3, costo_referencia: 12000 },
-    { id: 'inv-11', nombre: 'Quemador boquilla diésel', categoria: 'calderas', unidad: 'unidad', stock: 4, stock_minimo: 2, costo_referencia: 40000 },
-    { id: 'inv-12', nombre: 'Termocupla tipo K', categoria: 'calderas', unidad: 'unidad', stock: 6, stock_minimo: 3, costo_referencia: 15000 },
-    { id: 'inv-13', nombre: 'Presostato de caldera', categoria: 'calderas', unidad: 'unidad', stock: 3, stock_minimo: 2, costo_referencia: 35000 },
-    { id: 'inv-14', nombre: 'Válvula de seguridad 1/2"', categoria: 'calderas', unidad: 'unidad', stock: 4, stock_minimo: 2, costo_referencia: 45000 },
-    { id: 'inv-15', nombre: 'Tubo de caldera 2"', categoria: 'calderas', unidad: 'metro', stock: 15, stock_minimo: 5, costo_referencia: 22000 },
-    { id: 'inv-16', nombre: 'Cemento refractario', categoria: 'calderas', unidad: 'kg', stock: 30, stock_minimo: 10, costo_referencia: 3500 },
-    { id: 'inv-17', nombre: 'Aceite lubricante ISO 68', categoria: 'general', unidad: 'litro', stock: 40, stock_minimo: 10, costo_referencia: 4000 },
-    { id: 'inv-18', nombre: 'Grasa multipropósito', categoria: 'general', unidad: 'kg', stock: 15, stock_minimo: 5, costo_referencia: 5000 },
-    { id: 'inv-19', nombre: 'Filtro de aceite', categoria: 'general', unidad: 'unidad', stock: 12, stock_minimo: 4, costo_referencia: 8000 },
-    { id: 'inv-20', nombre: 'Pernos y tuercas surtidos', categoria: 'general', unidad: 'unidad', stock: 100, stock_minimo: 20, costo_referencia: 500 }
+    { id: 'inv-2', nombre: 'Sello mecánico doble', categoria: 'bombas', unidad: 'unidad', stock: 6, stock_minimo: 2, costo_referencia: 35000 },
+    { id: 'inv-3', nombre: 'Empaquetadura de grafito', categoria: 'bombas', unidad: 'metro', stock: 25, stock_minimo: 10, costo_referencia: 6000 },
+    { id: 'inv-4', nombre: 'Empaquetadura de teflón', categoria: 'bombas', unidad: 'metro', stock: 20, stock_minimo: 8, costo_referencia: 5500 },
+    { id: 'inv-5', nombre: 'Rodamiento SKF 6205', categoria: 'bombas', unidad: 'unidad', stock: 8, stock_minimo: 4, costo_referencia: 15000 },
+    { id: 'inv-6', nombre: 'Rodamiento SKF 6206', categoria: 'bombas', unidad: 'unidad', stock: 6, stock_minimo: 3, costo_referencia: 17000 },
+    { id: 'inv-7', nombre: 'Rodamiento de rodillos cónicos', categoria: 'bombas', unidad: 'unidad', stock: 4, stock_minimo: 2, costo_referencia: 28000 },
+    { id: 'inv-8', nombre: 'Correa trapezoidal A-38', categoria: 'bombas', unidad: 'unidad', stock: 10, stock_minimo: 3, costo_referencia: 9000 },
+    { id: 'inv-9', nombre: 'Correa trapezoidal B-50', categoria: 'bombas', unidad: 'unidad', stock: 8, stock_minimo: 3, costo_referencia: 11000 },
+    { id: 'inv-10', nombre: 'Acople flexible tipo araña', categoria: 'bombas', unidad: 'unidad', stock: 6, stock_minimo: 2, costo_referencia: 25000 },
+    { id: 'inv-11', nombre: 'Acople rígido', categoria: 'bombas', unidad: 'unidad', stock: 5, stock_minimo: 2, costo_referencia: 30000 },
+    { id: 'inv-12', nombre: 'Impulsor de bomba centrífuga', categoria: 'bombas', unidad: 'unidad', stock: 3, stock_minimo: 2, costo_referencia: 65000 },
+    { id: 'inv-13', nombre: 'Eje de bomba', categoria: 'bombas', unidad: 'unidad', stock: 2, stock_minimo: 1, costo_referencia: 85000 },
+    { id: 'inv-14', nombre: 'Camisa de eje', categoria: 'bombas', unidad: 'unidad', stock: 5, stock_minimo: 2, costo_referencia: 22000 },
+    { id: 'inv-15', nombre: 'Válvula de retención 2"', categoria: 'bombas', unidad: 'unidad', stock: 5, stock_minimo: 2, costo_referencia: 32000 },
+    { id: 'inv-16', nombre: 'Válvula de retención 4"', categoria: 'bombas', unidad: 'unidad', stock: 3, stock_minimo: 1, costo_referencia: 48000 },
+    { id: 'inv-17', nombre: 'Válvula de compuerta 2"', categoria: 'bombas', unidad: 'unidad', stock: 5, stock_minimo: 2, costo_referencia: 28000 },
+    { id: 'inv-18', nombre: 'Válvula de compuerta 4"', categoria: 'bombas', unidad: 'unidad', stock: 3, stock_minimo: 1, costo_referencia: 42000 },
+    { id: 'inv-19', nombre: 'Válvula de bola 1"', categoria: 'bombas', unidad: 'unidad', stock: 10, stock_minimo: 3, costo_referencia: 12000 },
+    { id: 'inv-20', nombre: 'Válvula de mariposa 3"', categoria: 'bombas', unidad: 'unidad', stock: 4, stock_minimo: 2, costo_referencia: 38000 },
+    { id: 'inv-21', nombre: 'Manómetro de presión (bombas)', categoria: 'bombas', unidad: 'unidad', stock: 8, stock_minimo: 3, costo_referencia: 14000 },
+    { id: 'inv-22', nombre: 'Prensaestopas', categoria: 'bombas', unidad: 'unidad', stock: 10, stock_minimo: 4, costo_referencia: 8000 },
+    { id: 'inv-23', nombre: 'Kit de o-rings surtido', categoria: 'bombas', unidad: 'unidad', stock: 15, stock_minimo: 5, costo_referencia: 6000 },
+    { id: 'inv-24', nombre: 'Base antivibración', categoria: 'bombas', unidad: 'unidad', stock: 6, stock_minimo: 2, costo_referencia: 20000 },
+    { id: 'inv-25', nombre: 'Electrodo de soldadura 6013', categoria: 'calderas', unidad: 'kg', stock: 20, stock_minimo: 5, costo_referencia: 4500 },
+    { id: 'inv-26', nombre: 'Electrodo de soldadura 7018', categoria: 'calderas', unidad: 'kg', stock: 15, stock_minimo: 5, costo_referencia: 5200 },
+    { id: 'inv-27', nombre: 'Empaquetadura para mirilla de caldera', categoria: 'calderas', unidad: 'unidad', stock: 8, stock_minimo: 3, costo_referencia: 12000 },
+    { id: 'inv-28', nombre: 'Quemador boquilla diésel', categoria: 'calderas', unidad: 'unidad', stock: 4, stock_minimo: 2, costo_referencia: 40000 },
+    { id: 'inv-29', nombre: 'Quemador boquilla gas', categoria: 'calderas', unidad: 'unidad', stock: 3, stock_minimo: 2, costo_referencia: 42000 },
+    { id: 'inv-30', nombre: 'Termocupla tipo K', categoria: 'calderas', unidad: 'unidad', stock: 6, stock_minimo: 3, costo_referencia: 15000 },
+    { id: 'inv-31', nombre: 'Termocupla tipo J', categoria: 'calderas', unidad: 'unidad', stock: 4, stock_minimo: 2, costo_referencia: 15000 },
+    { id: 'inv-32', nombre: 'Presostato de caldera', categoria: 'calderas', unidad: 'unidad', stock: 3, stock_minimo: 2, costo_referencia: 35000 },
+    { id: 'inv-33', nombre: 'Válvula de seguridad 1/2"', categoria: 'calderas', unidad: 'unidad', stock: 4, stock_minimo: 2, costo_referencia: 45000 },
+    { id: 'inv-34', nombre: 'Válvula de seguridad 1"', categoria: 'calderas', unidad: 'unidad', stock: 3, stock_minimo: 1, costo_referencia: 58000 },
+    { id: 'inv-35', nombre: 'Tubo de caldera 2"', categoria: 'calderas', unidad: 'metro', stock: 15, stock_minimo: 5, costo_referencia: 22000 },
+    { id: 'inv-36', nombre: 'Tubo de caldera 3"', categoria: 'calderas', unidad: 'metro', stock: 10, stock_minimo: 4, costo_referencia: 28000 },
+    { id: 'inv-37', nombre: 'Cemento refractario', categoria: 'calderas', unidad: 'kg', stock: 30, stock_minimo: 10, costo_referencia: 3500 },
+    { id: 'inv-38', nombre: 'Ladrillo refractario', categoria: 'calderas', unidad: 'unidad', stock: 40, stock_minimo: 15, costo_referencia: 2500 },
+    { id: 'inv-39', nombre: 'Fibra cerámica aislante', categoria: 'calderas', unidad: 'metro', stock: 12, stock_minimo: 5, costo_referencia: 9000 },
+    { id: 'inv-40', nombre: 'Control de nivel de agua', categoria: 'calderas', unidad: 'unidad', stock: 3, stock_minimo: 1, costo_referencia: 55000 },
+    { id: 'inv-41', nombre: 'Bomba de alimentación de agua', categoria: 'calderas', unidad: 'unidad', stock: 2, stock_minimo: 1, costo_referencia: 120000 },
+    { id: 'inv-42', nombre: 'Visor de llama', categoria: 'calderas', unidad: 'unidad', stock: 4, stock_minimo: 2, costo_referencia: 18000 },
+    { id: 'inv-43', nombre: 'Transformador de encendido', categoria: 'calderas', unidad: 'unidad', stock: 3, stock_minimo: 1, costo_referencia: 45000 },
+    { id: 'inv-44', nombre: 'Filtro de gasoil para quemador', categoria: 'calderas', unidad: 'unidad', stock: 10, stock_minimo: 4, costo_referencia: 6000 },
+    { id: 'inv-45', nombre: 'Manómetro de caldera 0-16 bar', categoria: 'calderas', unidad: 'unidad', stock: 6, stock_minimo: 2, costo_referencia: 16000 },
+    { id: 'inv-46', nombre: 'Purgador / trampa de vapor termodinámica', categoria: 'calderas', unidad: 'unidad', stock: 5, stock_minimo: 2, costo_referencia: 26000 },
+    { id: 'inv-47', nombre: 'Sensor de temperatura PT100', categoria: 'general', unidad: 'unidad', stock: 6, stock_minimo: 2, costo_referencia: 20000 },
+    { id: 'inv-48', nombre: 'Variador de frecuencia', categoria: 'general', unidad: 'unidad', stock: 2, stock_minimo: 1, costo_referencia: 180000 },
+    { id: 'inv-49', nombre: 'Contactor eléctrico', categoria: 'general', unidad: 'unidad', stock: 8, stock_minimo: 3, costo_referencia: 15000 },
+    { id: 'inv-50', nombre: 'Relé térmico', categoria: 'general', unidad: 'unidad', stock: 8, stock_minimo: 3, costo_referencia: 12000 },
+    { id: 'inv-51', nombre: 'Fusible industrial', categoria: 'general', unidad: 'unidad', stock: 20, stock_minimo: 8, costo_referencia: 2500 },
+    { id: 'inv-52', nombre: 'Cable eléctrico 2.5mm (rollo 100m)', categoria: 'general', unidad: 'unidad', stock: 5, stock_minimo: 2, costo_referencia: 45000 },
+    { id: 'inv-53', nombre: 'Terminal eléctrico surtido', categoria: 'general', unidad: 'unidad', stock: 50, stock_minimo: 15, costo_referencia: 300 },
+    { id: 'inv-54', nombre: 'Presostato diferencial', categoria: 'general', unidad: 'unidad', stock: 4, stock_minimo: 2, costo_referencia: 32000 },
+    { id: 'inv-55', nombre: 'Aceite lubricante ISO 68', categoria: 'general', unidad: 'litro', stock: 40, stock_minimo: 10, costo_referencia: 4000 },
+    { id: 'inv-56', nombre: 'Aceite lubricante ISO 32', categoria: 'general', unidad: 'litro', stock: 30, stock_minimo: 10, costo_referencia: 4200 },
+    { id: 'inv-57', nombre: 'Grasa multipropósito', categoria: 'general', unidad: 'kg', stock: 15, stock_minimo: 5, costo_referencia: 5000 },
+    { id: 'inv-58', nombre: 'Grasa para altas temperaturas', categoria: 'general', unidad: 'kg', stock: 10, stock_minimo: 3, costo_referencia: 8000 },
+    { id: 'inv-59', nombre: 'Filtro de aceite', categoria: 'general', unidad: 'unidad', stock: 12, stock_minimo: 4, costo_referencia: 8000 },
+    { id: 'inv-60', nombre: 'Filtro de aire', categoria: 'general', unidad: 'unidad', stock: 12, stock_minimo: 4, costo_referencia: 7000 },
+    { id: 'inv-61', nombre: 'Pernos y tuercas surtidos', categoria: 'general', unidad: 'unidad', stock: 100, stock_minimo: 20, costo_referencia: 500 },
+    { id: 'inv-62', nombre: 'Cinta de teflón', categoria: 'general', unidad: 'unidad', stock: 30, stock_minimo: 10, costo_referencia: 1200 },
+    { id: 'inv-63', nombre: 'Silicona alta temperatura', categoria: 'general', unidad: 'unidad', stock: 15, stock_minimo: 5, costo_referencia: 3500 },
+    { id: 'inv-64', nombre: 'Guantes de seguridad (par)', categoria: 'general', unidad: 'unidad', stock: 25, stock_minimo: 10, costo_referencia: 4000 }
   ],
   movimientos_inventario: []
 };
@@ -750,8 +792,14 @@ async function descontarInventarioPorMateriales(materiales, reporteId){
     await registrarMovimiento({ inventario_id: match.id, reporte_id: reporteId, tipo: 'salida', cantidad: Number(m.cantidad), nota: 'Descuento automático desde informe de servicio' });
   }
 }
-function poblarDatalistInventario(inventario){
-  document.getElementById('listaInventario').innerHTML = inventario.map(i => `<option value="${escapeHtml(i.nombre)}">`).join('');
+let inventarioParaSelects = [];
+function actualizarInventarioParaSelects(inventario){
+  inventarioParaSelects = [...inventario].sort((a,b)=> a.nombre.localeCompare(b.nombre));
+}
+function opcionesInventarioHtml(seleccionado){
+  return '<option value="">-- Selecciona un producto --</option>' + inventarioParaSelects.map(i =>
+    `<option value="${escapeHtml(i.nombre)}" ${i.nombre === seleccionado ? 'selected' : ''}>${escapeHtml(i.nombre)} (${escapeHtml(i.unidad || 'unidad')})</option>`
+  ).join('');
 }
 
 // ---- Navegación ----
@@ -911,6 +959,7 @@ async function pintarReportesCliente(){
   cablearFilaReporte(tbody, reportes, pintarReportesCliente);
 }
 document.getElementById('btnNuevoReporteCliente').addEventListener('click', async () => {
+  await listInventario().then(actualizarInventarioParaSelects);
   resetFormReporte();
   await poblarSelectClientes('rCliente');
   document.getElementById('rCliente').value = clienteActivo.id;
@@ -941,6 +990,7 @@ function labelTipoMantencion(v){
   return map[v] || v || '—';
 }
 document.getElementById('btnNuevaCotizacion').addEventListener('click', async () => {
+  await listInventario().then(actualizarInventarioParaSelects);
   resetFormCotizacion();
   await poblarSelectClientes('qCliente');
   openModal('modalCotizacion');
@@ -952,7 +1002,7 @@ function agregarFilaMaterialCot(item = '', cantidad = '', costo = ''){
   const row = document.createElement('div');
   row.className = 'mat-row';
   row.innerHTML = `
-    <input type="text" placeholder="Material / repuesto" class="mat-item" list="listaInventario" value="${escapeHtml(item)}">
+    <select class="mat-item">${opcionesInventarioHtml(item)}</select>
     <input type="number" placeholder="Cant." class="mat-cant" value="${escapeHtml(cantidad)}">
     <input type="number" placeholder="Costo unit." class="mat-costo" value="${escapeHtml(costo)}">
     <button type="button" title="Quitar">✕</button>
@@ -1099,6 +1149,7 @@ async function renderReportes(){
   cablearFilaReporte(tbody, rows, renderReportes);
 }
 document.getElementById('btnNuevoReporte').addEventListener('click', async () => {
+  await listInventario().then(actualizarInventarioParaSelects);
   resetFormReporte();
   await poblarSelectClientes('rCliente');
   document.getElementById('rCliente').disabled = false;
@@ -1111,7 +1162,7 @@ function agregarFilaMaterial(item = '', cantidad = '', costo = ''){
   const row = document.createElement('div');
   row.className = 'mat-row';
   row.innerHTML = `
-    <input type="text" placeholder="Material / repuesto" class="mat-item" list="listaInventario" value="${escapeHtml(item)}">
+    <select class="mat-item">${opcionesInventarioHtml(item)}</select>
     <input type="number" placeholder="Cant." class="mat-cant" value="${escapeHtml(cantidad)}">
     <input type="number" placeholder="Costo unit." class="mat-costo" value="${escapeHtml(costo)}">
     <button type="button" title="Quitar">✕</button>
@@ -1287,7 +1338,7 @@ function labelCategoria(v){
 }
 async function renderInventario(){
   cacheInventario = await listInventario();
-  poblarDatalistInventario(cacheInventario);
+  actualizarInventarioParaSelects(cacheInventario);
   pintarInventario(cacheInventario);
 }
 function pintarInventario(lista){
@@ -1371,7 +1422,7 @@ function intentarLogin(){
     document.getElementById('appLayout').style.display = 'flex';
     if (MODO_DEMO) document.getElementById('demoBanner').style.display = 'block';
     renderDashboard();
-    listInventario().then(poblarDatalistInventario);
+    listInventario().then(actualizarInventarioParaSelects);
   } else {
     err.style.display = 'block';
   }
@@ -1386,7 +1437,7 @@ if (sessionStorage.getItem('ingeproyect_auth') === '1'){
   document.getElementById('appLayout').style.display = 'flex';
   if (MODO_DEMO) document.getElementById('demoBanner').style.display = 'block';
   renderDashboard();
-  listInventario().then(poblarDatalistInventario);
+  listInventario().then(actualizarInventarioParaSelects);
 }
 </script>
 </body>
