@@ -66,10 +66,16 @@
   .badge.en-curso{background:#dce9fb;color:#1a4f8c;}
   .badge.facturado{background:#dce9fb;color:#1a4f8c;}
   .badge.pagado{background:#d7f3e3;color:#106b3c;}
+  .badge.vencida{background:#eee;color:#666;}
+  .badge.validado{background:#d7f3e3;color:#106b3c;}
+  .badge.rechazado{background:#fbe0dd;color:#a12b1d;}
 
   .mat-row{display:grid;grid-template-columns:1fr 90px 120px 32px;gap:8px;margin-bottom:8px;align-items:center;}
   .mat-row input{border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13.5px;font-family:inherit;}
   .mat-row button{background:none;border:none;color:var(--red);font-size:16px;font-weight:700;}
+
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:640px){ .form-row{grid-template-columns:1fr;} }
 
   .search-bar{display:flex;gap:10px;margin-bottom:16px;}
   .search-bar input{flex:1;max-width:320px;padding:10px 14px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;}
@@ -133,6 +139,7 @@
       <li><button data-view="clientes">👥 Clientes</button></li>
       <li><button data-view="cotizaciones">📄 Cotización</button></li>
       <li><button data-view="reportes">📋 Reporte</button></li>
+      <li><button data-view="trabajadores">🧑‍🔧 Trabajadores</button></li>
     </ul>
     <div class="sb-foot"><a href="index.html">← Volver al sitio</a></div>
   </aside>
@@ -211,8 +218,8 @@
           <button class="btn btn-primary btn-sm" id="btnNuevoReporteCliente">＋ Generar reporte</button>
         </div>
         <div class="panel" style="padding:0;overflow:hidden;">
-          <table><thead><tr><th>N°</th><th>Título</th><th>Tipo de servicio</th><th>Fecha</th><th>Valor</th><th>Facturación</th><th></th></tr></thead>
-          <tbody id="reportesClienteBody"><tr class="empty-row"><td colspan="7">Sin reportes generados</td></tr></tbody></table>
+          <table><thead><tr><th>N°</th><th>Título</th><th>Tipo de servicio</th><th>Fecha</th><th>Valor</th><th>Facturación</th><th>Validación</th><th></th></tr></thead>
+          <tbody id="reportesClienteBody"><tr class="empty-row"><td colspan="8">Sin reportes generados</td></tr></tbody></table>
         </div>
       </div>
     </section>
@@ -220,24 +227,36 @@
     <!-- COTIZACIONES -->
     <section class="view" id="view-cotizaciones">
       <div class="view-head">
-        <div><h1>Cotización</h1><p>Cotizaciones emitidas a clientes</p></div>
+        <div><h1>Cotización</h1><p>Cotizaciones de servicios de mantención emitidas a clientes</p></div>
         <button class="btn btn-primary" id="btnNuevaCotizacion">＋ Nueva cotización</button>
       </div>
       <div class="panel" style="padding:0;overflow:hidden;">
-        <table><thead><tr><th>N°</th><th>Cliente</th><th>Fecha</th><th>Detalle</th><th>Monto</th><th>Estado</th></tr></thead>
-        <tbody id="cotizacionesBody"><tr class="empty-row"><td colspan="6">Cargando...</td></tr></tbody></table>
+        <table><thead><tr><th>N°</th><th>Cliente</th><th>Tipo de mantención</th><th>Equipo</th><th>Fecha</th><th>Valor</th><th>Estado</th><th></th></tr></thead>
+        <tbody id="cotizacionesBody"><tr class="empty-row"><td colspan="8">Cargando...</td></tr></tbody></table>
       </div>
     </section>
 
     <!-- REPORTES -->
     <section class="view" id="view-reportes">
       <div class="view-head">
-        <div><h1>Reporte</h1><p>Todos los reportes generados</p></div>
+        <div><h1>Reporte</h1><p>Todos los reportes generados (incluye los enviados desde la app de terreno)</p></div>
         <button class="btn btn-primary" id="btnNuevoReporte">＋ Generar reporte</button>
       </div>
       <div class="panel" style="padding:0;overflow:hidden;">
-        <table><thead><tr><th>N°</th><th>Título</th><th>Cliente</th><th>Tipo de servicio</th><th>Fecha</th><th>Valor</th><th>Facturación</th><th></th></tr></thead>
-        <tbody id="reportesBody"><tr class="empty-row"><td colspan="8">Cargando...</td></tr></tbody></table>
+        <table><thead><tr><th>N°</th><th>Título</th><th>Cliente</th><th>Tipo de servicio</th><th>Fecha</th><th>Valor</th><th>Facturación</th><th>Validación</th><th></th></tr></thead>
+        <tbody id="reportesBody"><tr class="empty-row"><td colspan="9">Cargando...</td></tr></tbody></table>
+      </div>
+    </section>
+
+    <!-- TRABAJADORES -->
+    <section class="view" id="view-trabajadores">
+      <div class="view-head">
+        <div><h1>Trabajadores</h1><p>Cuentas para que el equipo de terreno ingrese a la app de reportes desde su celular</p></div>
+        <button class="btn btn-primary" id="btnNuevoTrabajador">＋ Nuevo trabajador</button>
+      </div>
+      <div class="panel" style="padding:0;overflow:hidden;">
+        <table><thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th></tr></thead>
+        <tbody id="trabajadoresBody"><tr class="empty-row"><td colspan="3">Cargando...</td></tr></tbody></table>
       </div>
     </section>
 
@@ -282,19 +301,72 @@
 
 <!-- MODAL: Nueva cotizacion -->
 <div class="modal-overlay" id="modalCotizacion">
-  <div class="modal">
-    <h3>Nueva cotización</h3>
-    <div class="field"><label>Cliente *</label><select id="qCliente"></select></div>
-    <div class="field"><label>N° de cotización</label><input type="text" id="qNumero"></div>
-    <div class="field"><label>Fecha</label><input type="date" id="qFecha"></div>
-    <div class="field"><label>Detalle</label><textarea id="qDetalle" rows="3"></textarea></div>
-    <div class="field"><label>Monto ($)</label><input type="number" id="qMonto"></div>
-    <div class="field"><label>Estado</label>
-      <select id="qEstado"><option value="pendiente">Pendiente</option><option value="aceptada">Aceptada</option><option value="rechazada">Rechazada</option></select>
+  <div class="modal" style="max-width:720px;">
+    <h3>Nueva cotización de mantención</h3>
+
+    <div style="font-size:12.5px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin:4px 0 10px;">Datos generales</div>
+    <div class="form-row">
+      <div class="field"><label>Cliente *</label><select id="qCliente"></select></div>
+      <div class="field"><label>N° de cotización</label><input type="text" id="qNumero" placeholder="Ej: COT-2026-001"></div>
     </div>
+    <div class="form-row">
+      <div class="field"><label>Tipo de mantención</label>
+        <select id="qTipoMantencion">
+          <option value="preventivo">Mantenimiento preventivo</option>
+          <option value="correctivo">Mantenimiento correctivo</option>
+          <option value="predictivo">Mantenimiento predictivo</option>
+          <option value="instalacion">Instalación / montaje</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+      <div class="field"><label>Equipo / sistema a intervenir</label><input type="text" id="qEquipo" placeholder="Ej: Sala de bombas, caldera pirotubular..."></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Ubicación / planta</label><input type="text" id="qUbicacion"></div>
+      <div class="field"><label>Fecha</label><input type="date" id="qFecha"></div>
+    </div>
+    <div class="field"><label>Alcance del trabajo</label><textarea id="qDetalle" rows="3" placeholder="Describe qué incluye la mantención cotizada..."></textarea></div>
+
+    <div style="font-size:12.5px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 10px;">Materiales y mano de obra estimados</div>
+    <div id="materialesRowsCot"></div>
+    <button type="button" class="btn btn-ghost btn-sm" id="btnAgregarMaterialCot" style="margin-bottom:14px;">＋ Agregar material / repuesto</button>
+    <div class="form-row">
+      <div class="field"><label>Horas de mano de obra estimadas</label><input type="number" id="qHorasEstimadas" step="0.5"></div>
+      <div class="field"><label>Costo mano de obra estimado ($)</label><input type="number" id="qCostoManoObraEstimado"></div>
+    </div>
+
+    <div style="font-size:12.5px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 10px;">Condiciones comerciales</div>
+    <div class="form-row">
+      <div class="field"><label>Valor total cotizado ($) *</label><input type="number" id="qMonto"></div>
+      <div class="field"><label>Validez de la oferta (días)</label><input type="number" id="qValidezDias" value="15"></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Condiciones de pago</label><input type="text" id="qCondicionesPago" placeholder="Ej: 50% anticipo, 50% contra entrega"></div>
+      <div class="field"><label>Estado</label>
+        <select id="qEstado"><option value="pendiente">Pendiente</option><option value="aceptada">Aceptada</option><option value="rechazada">Rechazada</option><option value="vencida">Vencida</option></select>
+      </div>
+    </div>
+
     <div class="modal-actions">
       <button class="btn btn-ghost" data-close="modalCotizacion">Cancelar</button>
       <button class="btn btn-primary" id="guardarCotizacion">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Nuevo trabajador -->
+<div class="modal-overlay" id="modalTrabajador">
+  <div class="modal">
+    <h3>Nuevo trabajador</h3>
+    <div class="field"><label>Nombre *</label><input type="text" id="wNombre"></div>
+    <div class="field"><label>Usuario</label><input type="text" id="wUsuario" placeholder="Para ingresar en la app desde el celular"></div>
+    <div class="field"><label>Contraseña</label><input type="text" id="wClave"></div>
+    <div class="field"><label>Rol</label>
+      <select id="wRol"><option value="tecnico">Técnico de terreno</option><option value="validador">Validador (revisa y publica reportes)</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="modalTrabajador">Cancelar</button>
+      <button class="btn btn-primary" id="guardarTrabajador">Guardar</button>
     </div>
   </div>
 </div>
@@ -399,7 +471,11 @@ const demoDB = {
   clientes: [],
   historico_trabajos: [],
   cotizaciones: [],
-  reportes: []
+  reportes: [],
+  trabajadores: [
+    { id: 'demo-trab-1', nombre: 'José Luis Sanhueza', usuario: 'jsanhueza', clave: 'Validador2026', rol: 'validador', created_at: new Date().toISOString() },
+    { id: 'demo-trab-2', nombre: 'Técnico de ejemplo', usuario: 'tecnico', clave: 'tecnico123', rol: 'tecnico', created_at: new Date().toISOString() }
+  ]
 };
 function uid(){ return 'demo-' + Math.random().toString(36).slice(2, 10); }
 
@@ -511,6 +587,35 @@ async function createReporte(obj){
   if (error) throw error;
   return data;
 }
+async function updateReporte(id, changes){
+  if (MODO_DEMO){
+    const row = demoDB.reportes.find(r => r.id === id);
+    if (row) Object.assign(row, changes);
+    return row;
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('reportes').update(changes).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
+}
+async function listTrabajadores(){
+  if (MODO_DEMO) return [...demoDB.trabajadores].sort((a,b)=> a.nombre.localeCompare(b.nombre));
+  const c = await getClient();
+  const { data, error } = await c.from('trabajadores').select('*').order('nombre');
+  if (error) throw error;
+  return data;
+}
+async function createTrabajador(obj){
+  if (MODO_DEMO){
+    const row = { id: uid(), created_at: new Date().toISOString(), ...obj };
+    demoDB.trabajadores.push(row);
+    return row;
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('trabajadores').insert(obj).select().single();
+  if (error) throw error;
+  return data;
+}
 
 // ---- Navegación ----
 let clienteActivo = null;
@@ -527,6 +632,7 @@ document.querySelectorAll('.sb-nav button').forEach(btn => {
     if (btn.dataset.view === 'clientes') renderClientes();
     if (btn.dataset.view === 'cotizaciones') renderCotizaciones();
     if (btn.dataset.view === 'reportes') renderReportes();
+    if (btn.dataset.view === 'trabajadores') renderTrabajadores();
   });
 });
 
@@ -661,15 +767,8 @@ document.getElementById('guardarTrabajo').addEventListener('click', async () => 
 async function pintarReportesCliente(){
   const reportes = await listReportes(clienteActivo.id);
   const tbody = document.getElementById('reportesClienteBody');
-  tbody.innerHTML = reportes.length ? reportes.map(r => `
-    <tr>
-      <td>${escapeHtml(r.numero || '—')}</td><td>${escapeHtml(r.titulo)}</td><td>${escapeHtml(r.tipo_servicio || '—')}</td>
-      <td>${fmtDate(r.fecha)}</td><td>${fmtMoney(r.valor_total)}</td>
-      <td><span class="badge ${r.estado_facturacion || 'pendiente'}">${escapeHtml(r.estado_facturacion || 'pendiente')}</span></td>
-      <td><button class="btn btn-ghost btn-sm" data-ver-informe="${r.id}">Ver</button></td>
-    </tr>
-  `).join('') : '<tr class="empty-row"><td colspan="7">Sin reportes generados para este cliente.</td></tr>';
-  tbody.querySelectorAll('[data-ver-informe]').forEach(b => b.addEventListener('click', () => verInforme(b.dataset.verInforme, reportes)));
+  tbody.innerHTML = reportes.length ? reportes.map(r => filaReporte(r, true)).join('') : '<tr class="empty-row"><td colspan="8">Sin reportes generados para este cliente.</td></tr>';
+  cablearFilaReporte(tbody, reportes, pintarReportesCliente);
 }
 document.getElementById('btnNuevoReporteCliente').addEventListener('click', async () => {
   resetFormReporte();
@@ -690,43 +789,167 @@ async function renderCotizaciones(){
   const rows = await listCotizaciones();
   const tbody = document.getElementById('cotizacionesBody');
   tbody.innerHTML = rows.length ? rows.map(q => `
-    <tr><td>${escapeHtml(q.numero || '—')}</td><td>${escapeHtml(q.clientes ? q.clientes.nombre : '—')}</td><td>${fmtDate(q.fecha)}</td>
-    <td>${escapeHtml(q.detalle || '—')}</td><td>${fmtMoney(q.monto)}</td><td><span class="badge ${q.estado}">${escapeHtml(q.estado)}</span></td></tr>
-  `).join('') : '<tr class="empty-row"><td colspan="6">Aún no hay cotizaciones registradas.</td></tr>';
+    <tr><td>${escapeHtml(q.numero || '—')}</td><td>${escapeHtml(q.clientes ? q.clientes.nombre : '—')}</td>
+    <td>${escapeHtml(labelTipoMantencion(q.tipo_mantencion))}</td><td>${escapeHtml(q.equipo || '—')}</td>
+    <td>${fmtDate(q.fecha)}</td><td>${fmtMoney(q.monto)}</td><td><span class="badge ${q.estado}">${escapeHtml(q.estado)}</span></td>
+    <td><button class="btn btn-ghost btn-sm" data-ver-cot="${q.id}">Ver</button></td></tr>
+  `).join('') : '<tr class="empty-row"><td colspan="8">Aún no hay cotizaciones registradas.</td></tr>';
+  tbody.querySelectorAll('[data-ver-cot]').forEach(b => b.addEventListener('click', () => verCotizacion(b.dataset.verCot, rows)));
+}
+function labelTipoMantencion(v){
+  const map = { preventivo:'Preventivo', correctivo:'Correctivo', predictivo:'Predictivo', instalacion:'Instalación / montaje', otro:'Otro' };
+  return map[v] || v || '—';
 }
 document.getElementById('btnNuevaCotizacion').addEventListener('click', async () => {
+  resetFormCotizacion();
   await poblarSelectClientes('qCliente');
   openModal('modalCotizacion');
 });
+
+// ---- Materiales dinámicos dentro del formulario de cotización ----
+function agregarFilaMaterialCot(item = '', cantidad = '', costo = ''){
+  const wrap = document.getElementById('materialesRowsCot');
+  const row = document.createElement('div');
+  row.className = 'mat-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Material / repuesto" class="mat-item" value="${escapeHtml(item)}">
+    <input type="number" placeholder="Cant." class="mat-cant" value="${escapeHtml(cantidad)}">
+    <input type="number" placeholder="Costo unit." class="mat-costo" value="${escapeHtml(costo)}">
+    <button type="button" title="Quitar">✕</button>
+  `;
+  row.querySelector('button').addEventListener('click', () => row.remove());
+  wrap.appendChild(row);
+}
+document.getElementById('btnAgregarMaterialCot').addEventListener('click', () => agregarFilaMaterialCot());
+function leerMaterialesCot(){
+  return Array.from(document.querySelectorAll('#materialesRowsCot .mat-row')).map(row => ({
+    item: row.querySelector('.mat-item').value.trim(),
+    cantidad: row.querySelector('.mat-cant').value ? Number(row.querySelector('.mat-cant').value) : null,
+    costo_unitario: row.querySelector('.mat-costo').value ? Number(row.querySelector('.mat-costo').value) : null
+  })).filter(m => m.item);
+}
+function resetFormCotizacion(){
+  ['qNumero','qEquipo','qUbicacion','qFecha','qDetalle','qHorasEstimadas','qCostoManoObraEstimado','qMonto','qCondicionesPago']
+    .forEach(id => document.getElementById(id).value = '');
+  document.getElementById('qTipoMantencion').selectedIndex = 0;
+  document.getElementById('qEstado').value = 'pendiente';
+  document.getElementById('qValidezDias').value = '15';
+  document.getElementById('materialesRowsCot').innerHTML = '';
+}
+
 document.getElementById('guardarCotizacion').addEventListener('click', async () => {
   const clienteId = document.getElementById('qCliente').value;
   if (!clienteId) { alert('Debes crear al menos un cliente primero.'); return; }
+  const monto = document.getElementById('qMonto').value;
+  if (!monto) { alert('El valor total cotizado es obligatorio.'); return; }
   await createCotizacion({
     cliente_id: clienteId,
     numero: document.getElementById('qNumero').value.trim(),
     fecha: document.getElementById('qFecha').value || null,
+    tipo_mantencion: document.getElementById('qTipoMantencion').value,
+    equipo: document.getElementById('qEquipo').value.trim(),
+    ubicacion: document.getElementById('qUbicacion').value.trim(),
     detalle: document.getElementById('qDetalle').value.trim(),
-    monto: document.getElementById('qMonto').value ? Number(document.getElementById('qMonto').value) : null,
+    materiales: leerMaterialesCot(),
+    horas_estimadas: document.getElementById('qHorasEstimadas').value ? Number(document.getElementById('qHorasEstimadas').value) : null,
+    costo_mano_obra_estimado: document.getElementById('qCostoManoObraEstimado').value ? Number(document.getElementById('qCostoManoObraEstimado').value) : null,
+    monto: Number(monto),
+    validez_dias: document.getElementById('qValidezDias').value ? Number(document.getElementById('qValidezDias').value) : null,
+    condiciones_pago: document.getElementById('qCondicionesPago').value.trim(),
     estado: document.getElementById('qEstado').value
   });
-  ['qNumero','qFecha','qDetalle','qMonto'].forEach(id => document.getElementById(id).value = '');
   closeModal('modalCotizacion');
   renderCotizaciones();
 });
 
+// ---- Ver / imprimir cotización ----
+function verCotizacion(id, rowsCache){
+  const q = rowsCache.find(x => x.id === id);
+  if (!q) return;
+  const clienteNombre = q.clientes ? q.clientes.nombre : '—';
+  const materiales = Array.isArray(q.materiales) ? q.materiales : [];
+  const html = `
+    <html><head><title>Cotización ${escapeHtml(q.numero || '')}</title>
+    <style>
+      body{font-family:Arial,sans-serif;color:#1c2b36;max-width:760px;margin:40px auto;padding:0 20px;}
+      h1{font-size:20px;color:#0b2437;border-bottom:3px solid #ff7a30;padding-bottom:10px;}
+      h2{font-size:14px;color:#ff7a30;text-transform:uppercase;letter-spacing:.04em;margin-top:26px;}
+      table{width:100%;border-collapse:collapse;margin-top:8px;}
+      td,th{border:1px solid #ddd;padding:8px;font-size:13px;text-align:left;}
+      .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13.5px;}
+      .grid div b{display:block;font-size:11px;color:#5b7080;text-transform:uppercase;}
+      .total{font-weight:bold;font-size:15px;margin-top:10px;text-align:right;}
+      @media print{ button{display:none;} }
+    </style></head><body>
+    <h1>Cotización de mantención ${escapeHtml(q.numero ? '— ' + q.numero : '')}</h1>
+    <div class="grid">
+      <div><b>Cliente</b>${escapeHtml(clienteNombre)}</div>
+      <div><b>Fecha</b>${fmtDate(q.fecha)}</div>
+      <div><b>Tipo de mantención</b>${escapeHtml(labelTipoMantencion(q.tipo_mantencion))}</div>
+      <div><b>Equipo / sistema</b>${escapeHtml(q.equipo || '—')}</div>
+      <div><b>Ubicación / planta</b>${escapeHtml(q.ubicacion || '—')}</div>
+      <div><b>Validez de la oferta</b>${q.validez_dias ? q.validez_dias + ' días' : '—'}</div>
+    </div>
+    <h2>Alcance del trabajo</h2>
+    <p>${escapeHtml(q.detalle || '—').replace(/\n/g,'<br>')}</p>
+    ${materiales.length ? `<h2>Materiales y repuestos estimados</h2>
+    <table><tr><th>Ítem</th><th>Cantidad</th><th>Costo unitario</th><th>Subtotal</th></tr>
+    ${materiales.map(m => `<tr><td>${escapeHtml(m.item)}</td><td>${escapeHtml(m.cantidad)}</td><td>${fmtMoney(m.costo_unitario)}</td><td>${fmtMoney((Number(m.cantidad)||0)*(Number(m.costo_unitario)||0))}</td></tr>`).join('')}
+    </table>` : ''}
+    <h2>Mano de obra estimada</h2>
+    <div class="grid">
+      <div><b>Horas estimadas</b>${q.horas_estimadas ?? '—'}</div>
+      <div><b>Costo mano de obra estimado</b>${fmtMoney(q.costo_mano_obra_estimado)}</div>
+    </div>
+    <h2>Condiciones comerciales</h2>
+    <p>${escapeHtml(q.condiciones_pago || 'A convenir')}</p>
+    <div class="total">Valor total cotizado: ${fmtMoney(q.monto)}</div>
+    <br><button onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+    </body></html>
+  `;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+}
+
 // ---- Reportes ----
+function badgeValidacion(v){
+  const map = { pendiente: 'Pendiente de validar', validado: 'Publicado (validado)', rechazado: 'Rechazado' };
+  return `<span class="badge ${v || 'pendiente'}">${escapeHtml(map[v] || map.pendiente)}</span>`;
+}
+function filaReporte(r, conCliente){
+  return `
+    <tr>
+      <td>${escapeHtml(r.numero || '—')}</td><td>${escapeHtml(r.titulo)}</td>
+      ${conCliente ? '' : `<td>${escapeHtml(r.clientes ? r.clientes.nombre : '—')}</td>`}
+      <td>${escapeHtml(r.tipo_servicio || '—')}</td><td>${fmtDate(r.fecha)}</td><td>${fmtMoney(r.valor_total)}</td>
+      <td><span class="badge ${r.estado_facturacion || 'pendiente'}">${escapeHtml(r.estado_facturacion || 'pendiente')}</span></td>
+      <td>${badgeValidacion(r.estado_validacion)}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-sm" data-ver-informe="${r.id}">Ver</button>
+        ${r.estado_validacion !== 'validado' ? `<button class="btn btn-primary btn-sm" data-validar="${r.id}" style="margin-left:6px;">Validar</button>` : ''}
+        ${r.estado_validacion !== 'rechazado' && r.estado_validacion !== 'validado' ? `<button class="btn btn-ghost btn-sm" data-rechazar="${r.id}" style="margin-left:6px;color:var(--red);">Rechazar</button>` : ''}
+      </td>
+    </tr>`;
+}
+function cablearFilaReporte(tbody, rows, refrescar){
+  tbody.querySelectorAll('[data-ver-informe]').forEach(b => b.addEventListener('click', () => verInforme(b.dataset.verInforme, rows)));
+  tbody.querySelectorAll('[data-validar]').forEach(b => b.addEventListener('click', async () => {
+    const nombre = prompt('¿Quién valida este informe?', 'José Luis Sanhueza') || 'José Luis Sanhueza';
+    await updateReporte(b.dataset.validar, { estado_validacion: 'validado', validado_por: nombre, fecha_validacion: new Date().toISOString().slice(0,10) });
+    refrescar();
+  }));
+  tbody.querySelectorAll('[data-rechazar]').forEach(b => b.addEventListener('click', async () => {
+    const nombre = prompt('¿Quién rechaza este informe?', 'José Luis Sanhueza') || 'José Luis Sanhueza';
+    await updateReporte(b.dataset.rechazar, { estado_validacion: 'rechazado', validado_por: nombre, fecha_validacion: new Date().toISOString().slice(0,10) });
+    refrescar();
+  }));
+}
 async function renderReportes(){
   const rows = await listReportes(null);
   const tbody = document.getElementById('reportesBody');
-  tbody.innerHTML = rows.length ? rows.map(r => `
-    <tr>
-      <td>${escapeHtml(r.numero || '—')}</td><td>${escapeHtml(r.titulo)}</td><td>${escapeHtml(r.clientes ? r.clientes.nombre : '—')}</td>
-      <td>${escapeHtml(r.tipo_servicio || '—')}</td><td>${fmtDate(r.fecha)}</td><td>${fmtMoney(r.valor_total)}</td>
-      <td><span class="badge ${r.estado_facturacion || 'pendiente'}">${escapeHtml(r.estado_facturacion || 'pendiente')}</span></td>
-      <td><button class="btn btn-ghost btn-sm" data-ver-informe="${r.id}">Ver</button></td>
-    </tr>
-  `).join('') : '<tr class="empty-row"><td colspan="8">Aún no hay reportes generados.</td></tr>';
-  tbody.querySelectorAll('[data-ver-informe]').forEach(b => b.addEventListener('click', () => verInforme(b.dataset.verInforme, rows)));
+  tbody.innerHTML = rows.length ? rows.map(r => filaReporte(r, false)).join('') : '<tr class="empty-row"><td colspan="9">Aún no hay reportes generados.</td></tr>';
+  cablearFilaReporte(tbody, rows, renderReportes);
 }
 document.getElementById('btnNuevoReporte').addEventListener('click', async () => {
   resetFormReporte();
@@ -799,7 +1022,11 @@ document.getElementById('guardarReporte').addEventListener('click', async () => 
     estado_facturacion: document.getElementById('rEstadoFacturacion').value,
     numero_factura: document.getElementById('rNumeroFactura').value.trim(),
     estado_final: document.getElementById('rEstadoFinal').value,
-    conformidad: document.getElementById('rConformidad').value.trim()
+    conformidad: document.getElementById('rConformidad').value.trim(),
+    estado_validacion: 'pendiente',
+    validado_por: null,
+    fecha_validacion: null,
+    trabajador_id: null
   });
   document.getElementById('rCliente').disabled = false;
   closeModal('modalReporte');
@@ -861,6 +1088,9 @@ function verInforme(id, rowsCache){
     <div class="total">Valor total del servicio: ${fmtMoney(r.valor_total)}</div>
     <h2>Conformidad</h2>
     <p>Recibido conforme por: ${escapeHtml(r.conformidad || '_______________________')}</p>
+    <p style="margin-top:8px;color:${r.estado_validacion === 'validado' ? '#106b3c' : '#7a5b00'};font-weight:bold;">
+      ${r.estado_validacion === 'validado' ? '✔ Informe validado y publicado' + (r.validado_por ? ' por ' + escapeHtml(r.validado_por) : '') + (r.fecha_validacion ? ' el ' + fmtDate(r.fecha_validacion) : '') : '⏳ Informe pendiente de validación (aún no visible para el cliente)'}
+    </p>
     <br><button onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
     </body></html>
   `;
@@ -868,6 +1098,31 @@ function verInforme(id, rowsCache){
   const url = URL.createObjectURL(blob);
   window.open(url, '_blank');
 }
+
+// ---- Trabajadores ----
+async function renderTrabajadores(){
+  const rows = await listTrabajadores();
+  const tbody = document.getElementById('trabajadoresBody');
+  tbody.innerHTML = rows.length ? rows.map(w => `
+    <tr><td>${escapeHtml(w.nombre)}</td><td>${escapeHtml(w.usuario || '—')}</td>
+    <td>${w.rol === 'validador' ? 'Validador' : 'Técnico de terreno'}</td></tr>
+  `).join('') : '<tr class="empty-row"><td colspan="3">Aún no hay trabajadores registrados. Crea aquí las cuentas para que ingresen a la app desde su celular.</td></tr>';
+}
+document.getElementById('btnNuevoTrabajador').addEventListener('click', () => openModal('modalTrabajador'));
+document.getElementById('guardarTrabajador').addEventListener('click', async () => {
+  const nombre = document.getElementById('wNombre').value.trim();
+  if (!nombre) { alert('El nombre es obligatorio.'); return; }
+  await createTrabajador({
+    nombre,
+    usuario: document.getElementById('wUsuario').value.trim() || null,
+    clave: document.getElementById('wClave').value.trim() || null,
+    rol: document.getElementById('wRol').value
+  });
+  ['wNombre','wUsuario','wClave'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('wRol').selectedIndex = 0;
+  closeModal('modalTrabajador');
+  renderTrabajadores();
+});
 
 // ---- Login ----
 const CREDENCIALES = { usuario: "1234567890", clave: "Paulita123#" };

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>App Técnicos · Grupo Ingeproyect SpA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0b2437; --navy-2:#0f3452; --amber:#ff7a30; --amber-2:#ff9457;
+    --bg:#f3f6f8; --line:#e3e8ec; --text:#1c2b36; --muted:#5b7080; --green:#1fae5c; --red:#d9483a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Inter',sans-serif;color:var(--text);background:var(--bg);}
+  h1,h2,h3{font-family:'Sora',sans-serif;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;font-size:16px;}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:10px;font-weight:700;font-size:15px;border:none;width:100%;}
+  .btn-primary{background:var(--amber);color:#fff;}
+  .btn-primary:hover{background:#ff6d18;}
+  .btn-ghost{background:#fff;color:var(--navy);border:1.5px solid var(--line);}
+  .btn-sm{width:auto;padding:8px 14px;font-size:13.5px;}
+
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  .field label{font-size:13px;font-weight:600;color:var(--muted);}
+  .field input, .field select, .field textarea{border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;}
+
+  #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--navy),#0d2c44);padding:20px;}
+  .login-card{background:#fff;border-radius:16px;padding:32px 26px;max-width:360px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.3);}
+  .login-card .brand{font-family:'Sora',sans-serif;font-weight:700;font-size:18px;color:var(--navy);margin-bottom:4px;}
+  .login-card .sub{color:var(--muted);font-size:13.5px;margin-bottom:22px;}
+  #loginError{color:#d9483a;font-size:13px;font-weight:600;margin-bottom:10px;display:none;}
+  .login-hint{margin-top:16px;font-size:11.5px;line-height:1.5;color:var(--muted);background:var(--bg);padding:10px 12px;border-radius:8px;}
+
+  header.app-header{background:linear-gradient(160deg,var(--navy),#0d2c44);color:#fff;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
+  header.app-header .who b{display:block;font-size:14.5px;}
+  header.app-header .who small{color:#9db2c2;font-size:11px;text-transform:uppercase;letter-spacing:.04em;}
+  header.app-header button{background:rgba(255,255,255,.14);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:12.5px;font-weight:600;width:auto;}
+
+  #demoBanner{background:#fff3cd;color:#7a5b00;text-align:center;padding:8px 14px;font-size:12px;font-weight:600;display:none;}
+
+  .main{padding:18px 16px 92px;max-width:520px;margin:0 auto;}
+  .section{display:none;}
+  .section.active{display:block;}
+  .section-title{font-size:18px;color:var(--navy);margin-bottom:4px;}
+  .section-sub{color:var(--muted);font-size:13px;margin-bottom:18px;}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;}
+  .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px;}
+  .card .top b{font-size:14.5px;color:var(--navy);}
+  .card .meta{font-size:12.5px;color:var(--muted);margin-bottom:10px;}
+  .empty-state{text-align:center;color:var(--muted);padding:40px 20px;font-size:14px;}
+
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap;}
+  .badge.pendiente{background:#fff3cd;color:#7a5b00;}
+  .badge.validado{background:#d7f3e3;color:#106b3c;}
+  .badge.rechazado{background:#fbe0dd;color:#a12b1d;}
+
+  .mat-row{display:grid;grid-template-columns:1fr 55px 85px 26px;gap:6px;margin-bottom:8px;align-items:center;}
+  .mat-row input{border:1.5px solid var(--line);border-radius:8px;padding:9px 8px;font-size:13px;}
+  .mat-row button{background:none;border:none;color:var(--red);font-size:16px;font-weight:700;width:auto;padding:0;}
+
+  .section-label{font-size:12px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin:16px 0 10px;}
+
+  nav.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;z-index:20;}
+  nav.bottom-nav button{flex:1;background:none;border:none;padding:10px 4px 12px;font-size:11px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;width:auto;}
+  nav.bottom-nav button .ic{font-size:19px;}
+  nav.bottom-nav button.active{color:var(--amber);}
+  nav.bottom-nav button.hidden{display:none;}
+
+  .detail-overlay{position:fixed;inset:0;background:rgba(11,36,55,.6);display:none;align-items:flex-end;justify-content:center;z-index:200;}
+  .detail-overlay.active{display:flex;}
+  .detail-sheet{background:#fff;border-radius:18px 18px 0 0;padding:22px 18px 26px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;}
+  .detail-sheet h3{font-size:16.5px;color:var(--navy);margin-bottom:4px;}
+  .detail-sheet .sub{color:var(--muted);font-size:13px;margin-bottom:14px;}
+  .detail-grid div{font-size:13.5px;margin-bottom:8px;}
+  .detail-grid b{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
+  .detail-actions{display:flex;gap:10px;margin-top:16px;}
+</style>
+</head>
+<body>
+
+<div id="demoBanner">⚠️ Modo demostración: los datos de esta app viven solo en este teléfono/navegador y no se comparten todavía con la Intranet ni el Portal de clientes (eso requiere conectar Supabase).</div>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="brand">Grupo Ingeproyect</div>
+    <div class="sub">App de terreno — reportes de servicio</div>
+    <div class="field"><label>Usuario</label><input type="text" id="loginUser" autocomplete="username"></div>
+    <div class="field"><label>Contraseña</label><input type="password" id="loginPass" autocomplete="current-password"></div>
+    <div id="loginError">Usuario o contraseña incorrectos.</div>
+    <button class="btn btn-primary" id="loginBtn">Ingresar</button>
+    <div class="login-hint">¿Primera vez? Pide tu usuario y contraseña al equipo de oficina — se crean desde la Intranet, sección "Trabajadores".</div>
+  </div>
+</div>
+
+<div id="appLayout" style="display:none;">
+  <header class="app-header">
+    <div class="who"><b id="whoNombre">—</b><small id="whoRol">—</small></div>
+    <button id="btnLogout">Salir</button>
+  </header>
+
+  <main class="main">
+
+    <section class="section active" id="sec-nuevo">
+      <div class="section-title">Nuevo reporte de servicio</div>
+      <div class="section-sub">Complétalo al terminar el trabajo en terreno. Quedará pendiente de validación antes de que el cliente lo pueda ver.</div>
+
+      <div class="field"><label>Cliente *</label><select id="nCliente"></select></div>
+      <div class="field"><label>N° de informe</label><input type="text" id="nNumero" placeholder="Ej: INF-2026-002"></div>
+      <div class="field"><label>Título *</label><input type="text" id="nTitulo" placeholder="Ej: Mantenimiento preventivo sala de bombas"></div>
+      <div class="field"><label>Tipo de servicio</label>
+        <select id="nTipoServicio">
+          <option>Diseño e ingeniería de salas de bombas</option>
+          <option>Instalación y montaje de calderas</option>
+          <option>Mantenimiento preventivo y correctivo</option>
+          <option>Diagnóstico y eficiencia energética</option>
+          <option>Sistemas hidráulicos y de presión</option>
+          <option>Inspección técnica y certificaciones</option>
+          <option>Otro</option>
+        </select>
+      </div>
+      <div class="field"><label>Equipo intervenido</label><input type="text" id="nEquipo"></div>
+      <div class="field"><label>Ubicación / planta</label><input type="text" id="nUbicacion"></div>
+      <div class="field"><label>Fecha</label><input type="date" id="nFecha"></div>
+      <div class="field"><label>Diagnóstico y trabajo realizado *</label><textarea id="nContenido" rows="4" placeholder="Describe lo que hiciste, hallazgos, estado del equipo..."></textarea></div>
+
+      <div class="section-label">Materiales / repuestos usados</div>
+      <div id="materialesRowsApp"></div>
+      <button type="button" class="btn btn-ghost btn-sm" id="btnAgregarMaterialApp" style="margin-bottom:14px;">＋ Agregar</button>
+      <div class="field"><label>Horas trabajadas</label><input type="number" id="nHoras" step="0.5"></div>
+      <div class="field"><label>Valor del servicio ($) (si corresponde)</label><input type="number" id="nValorTotal"></div>
+      <div class="field"><label>Recomendaciones</label><textarea id="nRecomendaciones" rows="2"></textarea></div>
+      <div class="field"><label>Recibido conforme por (cliente en terreno)</label><input type="text" id="nConformidad"></div>
+
+      <button class="btn btn-primary" id="btnEnviarReporte" style="margin-top:6px;">Guardar y enviar a validación</button>
+    </section>
+
+    <section class="section" id="sec-mis">
+      <div class="section-title">Mis reportes</div>
+      <div class="section-sub">Reportes que has enviado y su estado de validación.</div>
+      <div id="misReportesList"></div>
+    </section>
+
+    <section class="section" id="sec-validar">
+      <div class="section-title">Por validar</div>
+      <div class="section-sub">Reportes de todo el equipo esperando tu revisión antes de publicarse al cliente.</div>
+      <div id="porValidarList"></div>
+    </section>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-sec="nuevo"><span class="ic">📝</span>Nuevo reporte</button>
+    <button class="nav-btn" data-sec="mis"><span class="ic">📋</span>Mis reportes</button>
+    <button class="nav-btn hidden" id="navValidar" data-sec="validar"><span class="ic">✅</span>Por validar</button>
+  </nav>
+</div>
+
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-sheet">
+    <h3 id="dTitulo">—</h3>
+    <div class="sub" id="dSub">—</div>
+    <div class="detail-grid" id="dGrid"></div>
+    <div id="dContenidoWrap"></div>
+    <div class="detail-actions" id="dActions"></div>
+    <button class="btn btn-ghost" style="margin-top:10px;" id="btnCerrarDetalle">Cerrar</button>
+  </div>
+</div>
+
+<script type="module">
+// Mismo proyecto Supabase que la Intranet y el Portal de clientes.
+const supabaseConfig = {
+  url: "TU_SUPABASE_URL",
+  anonKey: "TU_SUPABASE_ANON_KEY"
+};
+const MODO_DEMO = supabaseConfig.url === "TU_SUPABASE_URL";
+
+let supabase = null;
+async function getClient(){
+  if (MODO_DEMO) return null;
+  if (supabase) return supabase;
+  const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+  supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
+  return supabase;
+}
+
+// ---- Datos de ejemplo para MODO_DEMO (viven solo en este navegador) ----
+const demoDB = {
+  trabajadores: [
+    { id: 'demo-trab-1', nombre: 'José Luis Sanhueza', usuario: 'jsanhueza', clave: 'Validador2026', rol: 'validador' },
+    { id: 'demo-trab-2', nombre: 'Técnico de ejemplo', usuario: 'tecnico', clave: 'tecnico123', rol: 'tecnico' }
+  ],
+  clientes: [
+    { id: 'demo-cliente-app', nombre: 'Cliente de ejemplo' }
+  ],
+  reportes: [
+    { id: 'demo-rep-1', cliente_id: 'demo-cliente-app', numero: 'INF-2026-000', titulo: 'Revisión válvulas sala de bombas',
+      tipo_servicio: 'Sistemas hidráulicos y de presión', equipo: 'Bomba centrífuga N°2', ubicacion: 'Planta principal',
+      fecha: '2026-07-20', contenido: 'Se detectó fuga menor en válvula de retención, se ajustó y quedó operativa.',
+      materiales: [], horas: 2, valor_total: 45000, tecnico: 'Técnico de ejemplo', trabajador_id: 'demo-trab-2',
+      estado_validacion: 'pendiente', validado_por: null, fecha_validacion: null, created_at: new Date().toISOString() }
+  ]
+};
+function uid(){ return 'demo-' + Math.random().toString(36).slice(2, 10); }
+function escapeHtml(s){
+  return (s === null || s === undefined ? '' : String(s))
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtMoney(n){ if (n === null || n === undefined || n === '') return '—'; return '$' + Number(n).toLocaleString('es-CL'); }
+function fmtDate(d){ return d || '—'; }
+
+let trabajadorActivo = null;
+
+// ---- Capa de datos ----
+async function buscarTrabajador(usuario, clave){
+  if (MODO_DEMO) return demoDB.trabajadores.find(w => w.usuario === usuario && w.clave === clave) || null;
+  const c = await getClient();
+  const { data, error } = await c.from('trabajadores').select('*').eq('usuario', usuario).eq('clave', clave).maybeSingle();
+  if (error) { console.error(error); return null; }
+  return data;
+}
+async function listClientes(){
+  if (MODO_DEMO) return [...demoDB.clientes].sort((a,b)=> a.nombre.localeCompare(b.nombre));
+  const c = await getClient();
+  const { data, error } = await c.from('clientes').select('*').order('nombre');
+  if (error) throw error;
+  return data;
+}
+async function createReporte(obj){
+  if (MODO_DEMO){
+    const row = { id: uid(), created_at: new Date().toISOString(), ...obj };
+    demoDB.reportes.push(row);
+    return row;
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('reportes').insert(obj).select().single();
+  if (error) throw error;
+  return data;
+}
+async function updateReporte(id, changes){
+  if (MODO_DEMO){
+    const row = demoDB.reportes.find(r => r.id === id);
+    if (row) Object.assign(row, changes);
+    return row;
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('reportes').update(changes).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
+}
+async function listMisReportes(trabajadorId){
+  if (MODO_DEMO){
+    return [...demoDB.reportes].filter(r => r.trabajador_id === trabajadorId)
+      .sort((a,b)=> (b.created_at||'').localeCompare(a.created_at||''))
+      .map(r => ({ ...r, clientes: demoDB.clientes.find(c=>c.id===r.cliente_id) }));
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('reportes').select('*, clientes(nombre)').eq('trabajador_id', trabajadorId).order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+async function listPorValidar(){
+  if (MODO_DEMO){
+    return [...demoDB.reportes].filter(r => r.estado_validacion === 'pendiente')
+      .sort((a,b)=> (b.created_at||'').localeCompare(a.created_at||''))
+      .map(r => ({ ...r, clientes: demoDB.clientes.find(c=>c.id===r.cliente_id) }));
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('reportes').select('*, clientes(nombre)').eq('estado_validacion', 'pendiente').order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+// ---- Login ----
+async function intentarLogin(){
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  const trabajador = await buscarTrabajador(u, p);
+  if (trabajador){
+    err.style.display = 'none';
+    trabajadorActivo = trabajador;
+    sessionStorage.setItem('ingeproyect_app_trab', JSON.stringify(trabajador));
+    entrarApp();
+  } else {
+    err.style.display = 'block';
+  }
+}
+document.getElementById('loginBtn').addEventListener('click', intentarLogin);
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') intentarLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') intentarLogin(); });
+document.getElementById('btnLogout').addEventListener('click', () => {
+  sessionStorage.removeItem('ingeproyect_app_trab');
+  trabajadorActivo = null;
+  document.getElementById('appLayout').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+});
+
+async function entrarApp(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appLayout').style.display = 'block';
+  if (MODO_DEMO) document.getElementById('demoBanner').style.display = 'block';
+  document.getElementById('whoNombre').textContent = trabajadorActivo.nombre;
+  document.getElementById('whoRol').textContent = trabajadorActivo.rol === 'validador' ? 'Validador' : 'Técnico de terreno';
+  document.getElementById('navValidar').classList.toggle('hidden', trabajadorActivo.rol !== 'validador');
+  await poblarSelectClientesApp();
+  document.getElementById('nFecha').value = new Date().toISOString().slice(0,10);
+  mostrarSeccion('nuevo');
+}
+
+// ---- Navegación inferior ----
+function mostrarSeccion(sec){
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + sec).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.sec === sec));
+  if (sec === 'mis') renderMisReportes();
+  if (sec === 'validar') renderPorValidar();
+}
+document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', () => mostrarSeccion(btn.dataset.sec)));
+
+// ---- Formulario nuevo reporte ----
+async function poblarSelectClientesApp(){
+  const clientes = await listClientes();
+  document.getElementById('nCliente').innerHTML = clientes.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`).join('');
+}
+function agregarFilaMaterialApp(item='', cantidad='', costo=''){
+  const wrap = document.getElementById('materialesRowsApp');
+  const row = document.createElement('div');
+  row.className = 'mat-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Material" class="mat-item" value="${escapeHtml(item)}">
+    <input type="number" placeholder="Cant." class="mat-cant" value="${escapeHtml(cantidad)}">
+    <input type="number" placeholder="Costo" class="mat-costo" value="${escapeHtml(costo)}">
+    <button type="button">✕</button>
+  `;
+  row.querySelector('button').addEventListener('click', () => row.remove());
+  wrap.appendChild(row);
+}
+document.getElementById('btnAgregarMaterialApp').addEventListener('click', () => agregarFilaMaterialApp());
+function leerMaterialesApp(){
+  return Array.from(document.querySelectorAll('#materialesRowsApp .mat-row')).map(row => ({
+    item: row.querySelector('.mat-item').value.trim(),
+    cantidad: row.querySelector('.mat-cant').value ? Number(row.querySelector('.mat-cant').value) : null,
+    costo_unitario: row.querySelector('.mat-costo').value ? Number(row.querySelector('.mat-costo').value) : null
+  })).filter(m => m.item);
+}
+document.getElementById('btnEnviarReporte').addEventListener('click', async () => {
+  const clienteId = document.getElementById('nCliente').value;
+  const titulo = document.getElementById('nTitulo').value.trim();
+  const contenido = document.getElementById('nContenido').value.trim();
+  if (!clienteId) { alert('Selecciona un cliente.'); return; }
+  if (!titulo) { alert('El título es obligatorio.'); return; }
+  if (!contenido) { alert('Describe el trabajo realizado.'); return; }
+
+  await createReporte({
+    cliente_id: clienteId,
+    numero: document.getElementById('nNumero').value.trim(),
+    titulo,
+    tipo_servicio: document.getElementById('nTipoServicio').value,
+    equipo: document.getElementById('nEquipo').value.trim(),
+    ubicacion: document.getElementById('nUbicacion').value.trim(),
+    fecha: document.getElementById('nFecha').value || null,
+    fecha_inicio: document.getElementById('nFecha').value || null,
+    contenido,
+    materiales: leerMaterialesApp(),
+    horas: document.getElementById('nHoras').value ? Number(document.getElementById('nHoras').value) : null,
+    valor_total: document.getElementById('nValorTotal').value ? Number(document.getElementById('nValorTotal').value) : null,
+    recomendaciones: document.getElementById('nRecomendaciones').value.trim(),
+    conformidad: document.getElementById('nConformidad').value.trim(),
+    tecnico: trabajadorActivo.nombre,
+    trabajador_id: trabajadorActivo.id,
+    estado_validacion: 'pendiente',
+    validado_por: null,
+    fecha_validacion: null,
+    estado_facturacion: 'pendiente',
+    estado_final: 'aprobado'
+  });
+
+  ['nNumero','nTitulo','nEquipo','nUbicacion','nContenido','nHoras','nValorTotal','nRecomendaciones','nConformidad'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('nTipoServicio').selectedIndex = 0;
+  document.getElementById('materialesRowsApp').innerHTML = '';
+  document.getElementById('nFecha').value = new Date().toISOString().slice(0,10);
+  alert('Reporte enviado. Quedará visible para el cliente una vez que sea validado.');
+  mostrarSeccion('mis');
+});
+
+// ---- Mis reportes ----
+function badgeValidacion(v){
+  const map = { pendiente: 'Pendiente de validar', validado: 'Validado / publicado', rechazado: 'Rechazado' };
+  return `<span class="badge ${v || 'pendiente'}">${escapeHtml(map[v] || map.pendiente)}</span>`;
+}
+async function renderMisReportes(){
+  const rows = await listMisReportes(trabajadorActivo.id);
+  const wrap = document.getElementById('misReportesList');
+  if (!rows.length){ wrap.innerHTML = '<div class="empty-state">Aún no has enviado reportes.</div>'; return; }
+  wrap.innerHTML = rows.map(r => `
+    <div class="card" data-id="${r.id}">
+      <div class="top"><b>${escapeHtml(r.titulo)}</b>${badgeValidacion(r.estado_validacion)}</div>
+      <div class="meta">${escapeHtml(r.clientes ? r.clientes.nombre : '—')} · ${fmtDate(r.fecha)}</div>
+      <button class="btn btn-ghost btn-sm" data-ver="${r.id}">Ver detalle</button>
+    </div>
+  `).join('');
+  wrap.querySelectorAll('[data-ver]').forEach(b => b.addEventListener('click', () => verDetalle(b.dataset.ver, rows, false)));
+}
+
+// ---- Por validar ----
+async function renderPorValidar(){
+  const rows = await listPorValidar();
+  const wrap = document.getElementById('porValidarList');
+  if (!rows.length){ wrap.innerHTML = '<div class="empty-state">No hay reportes pendientes de validación. 🎉</div>'; return; }
+  wrap.innerHTML = rows.map(r => `
+    <div class="card" data-id="${r.id}">
+      <div class="top"><b>${escapeHtml(r.titulo)}</b>${badgeValidacion(r.estado_validacion)}</div>
+      <div class="meta">${escapeHtml(r.clientes ? r.clientes.nombre : '—')} · ${fmtDate(r.fecha)} · Técnico: ${escapeHtml(r.tecnico || '—')}</div>
+      <button class="btn btn-ghost btn-sm" data-ver="${r.id}">Revisar</button>
+    </div>
+  `).join('');
+  wrap.querySelectorAll('[data-ver]').forEach(b => b.addEventListener('click', () => verDetalle(b.dataset.ver, rows, true)));
+}
+
+// ---- Detalle / validación ----
+function verDetalle(id, rowsCache, conAcciones){
+  const r = rowsCache.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('dTitulo').textContent = r.titulo;
+  document.getElementById('dSub').textContent = (r.clientes ? r.clientes.nombre : '—') + ' · ' + (r.tipo_servicio || '—');
+  document.getElementById('dGrid').innerHTML = `
+    <div><b>Equipo</b>${escapeHtml(r.equipo || '—')}</div>
+    <div><b>Ubicación</b>${escapeHtml(r.ubicacion || '—')}</div>
+    <div><b>Fecha</b>${fmtDate(r.fecha)}</div>
+    <div><b>Técnico</b>${escapeHtml(r.tecnico || '—')}</div>
+    <div><b>Horas</b>${r.horas ?? '—'}</div>
+    <div><b>Valor</b>${fmtMoney(r.valor_total)}</div>
+  `;
+  document.getElementById('dContenidoWrap').innerHTML = `
+    <div class="section-label" style="margin-top:14px;">Diagnóstico y trabajo realizado</div>
+    <div style="font-size:13.5px;">${escapeHtml(r.contenido || '—').replace(/\n/g,'<br>')}</div>
+    ${r.recomendaciones ? '<div class="section-label">Recomendaciones</div><div style="font-size:13.5px;">' + escapeHtml(r.recomendaciones).replace(/\n/g,'<br>') + '</div>' : ''}
+  `;
+  const actions = document.getElementById('dActions');
+  if (conAcciones && r.estado_validacion === 'pendiente'){
+    actions.innerHTML = `
+      <button class="btn btn-primary" id="btnValidarDetalle">✔ Validar y publicar</button>
+      <button class="btn btn-ghost" id="btnRechazarDetalle" style="color:var(--red);">Rechazar</button>
+    `;
+    document.getElementById('btnValidarDetalle').addEventListener('click', async () => {
+      await updateReporte(r.id, { estado_validacion: 'validado', validado_por: trabajadorActivo.nombre, fecha_validacion: new Date().toISOString().slice(0,10) });
+      cerrarDetalle();
+      renderPorValidar();
+    });
+    document.getElementById('btnRechazarDetalle').addEventListener('click', async () => {
+      await updateReporte(r.id, { estado_validacion: 'rechazado', validado_por: trabajadorActivo.nombre, fecha_validacion: new Date().toISOString().slice(0,10) });
+      cerrarDetalle();
+      renderPorValidar();
+    });
+  } else {
+    actions.innerHTML = '';
+  }
+  document.getElementById('detailOverlay').classList.add('active');
+}
+function cerrarDetalle(){ document.getElementById('detailOverlay').classList.remove('active'); }
+document.getElementById('btnCerrarDetalle').addEventListener('click', cerrarDetalle);
+
+// ---- Init ----
+const guardado = sessionStorage.getItem('ingeproyect_app_trab');
+if (guardado){
+  trabajadorActivo = JSON.parse(guardado);
+  entrarApp();
+}
+</script>
+</body>
+</html>

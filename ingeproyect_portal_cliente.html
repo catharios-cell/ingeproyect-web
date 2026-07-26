@@ -78,6 +78,7 @@
     <div class="tabs">
       <button class="tab-btn active" data-tab="datos">Mis datos</button>
       <button class="tab-btn" data-tab="historial">Historial de mantenciones</button>
+      <button class="tab-btn" data-tab="informes">Informes de servicio</button>
     </div>
 
     <div class="tabview active" id="tab-datos">
@@ -95,6 +96,16 @@
         <table>
           <thead><tr><th>Trabajo / Mantención</th><th>Fecha</th><th>Estado</th></tr></thead>
           <tbody id="historialBody"><tr class="empty-row"><td colspan="3">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tabview" id="tab-informes">
+      <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Aquí verás los informes de servicio ya validados por nuestro equipo. Los informes que aún están en revisión no aparecen en esta lista.</p>
+      <div class="panel">
+        <table>
+          <thead><tr><th>N°</th><th>Servicio</th><th>Fecha</th><th></th></tr></thead>
+          <tbody id="informesBody"><tr class="empty-row"><td colspan="4">Cargando...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -152,6 +163,64 @@ async function listarHistorial(clienteId){
   if (error) { console.error(error); return []; }
   return data;
 }
+async function listarInformesValidados(clienteId){
+  if (MODO_DEMO){
+    if (clienteId === 'demo-cliente') {
+      return [{
+        id: 'demo-informe-1', numero: 'INF-2026-001', titulo: 'Mantenimiento preventivo caldera pirotubular',
+        tipo_servicio: 'Mantenimiento preventivo y correctivo', equipo: 'Caldera pirotubular 500 kg/h',
+        ubicacion: 'Sala de calderas, planta principal', tecnico: 'Técnico de ejemplo',
+        fecha_inicio: '2026-05-14', fecha: '2026-05-14',
+        contenido: 'Se realizó limpieza de tubos, revisión de válvulas de seguridad y calibración de quemador. Sin anomalías detectadas.',
+        mediciones: 'Presión de trabajo: 6.0 bar. Temperatura de salida: 158°C.',
+        recomendaciones: 'Repetir mantenimiento preventivo en 6 meses.',
+        estado_validacion: 'validado', validado_por: 'José Luis Sanhueza', fecha_validacion: '2026-05-15',
+        conformidad: 'Contacto de ejemplo'
+      }];
+    }
+    return [];
+  }
+  const c = await getClient();
+  const { data, error } = await c.from('reportes').select('*').eq('cliente_id', clienteId).eq('estado_validacion', 'validado').order('fecha', { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data;
+}
+function verInformeCliente(id, rowsCache){
+  const r = rowsCache.find(x => x.id === id);
+  if (!r) return;
+  const html = `
+    <html><head><title>Informe ${escapeHtml(r.numero || '')} - ${escapeHtml(r.titulo)}</title>
+    <style>
+      body{font-family:Arial,sans-serif;color:#1c2b36;max-width:760px;margin:40px auto;padding:0 20px;}
+      h1{font-size:20px;color:#0b2437;border-bottom:3px solid #ff7a30;padding-bottom:10px;}
+      h2{font-size:14px;color:#ff7a30;text-transform:uppercase;letter-spacing:.04em;margin-top:26px;}
+      .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13.5px;}
+      .grid div b{display:block;font-size:11px;color:#5b7080;text-transform:uppercase;}
+      @media print{ button{display:none;} }
+    </style></head><body>
+    <h1>Informe de servicio ${escapeHtml(r.numero ? '— ' + r.numero : '')}</h1>
+    <div class="grid">
+      <div><b>Tipo de servicio</b>${escapeHtml(r.tipo_servicio || '—')}</div>
+      <div><b>Equipo intervenido</b>${escapeHtml(r.equipo || '—')}</div>
+      <div><b>Ubicación</b>${escapeHtml(r.ubicacion || '—')}</div>
+      <div><b>Técnico responsable</b>${escapeHtml(r.tecnico || '—')}</div>
+      <div><b>Fecha inicio</b>${fmtDate(r.fecha_inicio)}</div>
+      <div><b>Fecha término</b>${fmtDate(r.fecha)}</div>
+    </div>
+    <h2>Diagnóstico y trabajo realizado</h2>
+    <p>${escapeHtml(r.contenido || '—').replace(/\n/g,'<br>')}</p>
+    ${r.mediciones ? '<h2>Mediciones / parámetros técnicos</h2><p>' + escapeHtml(r.mediciones).replace(/\n/g,'<br>') + '</p>' : ''}
+    ${r.recomendaciones ? '<h2>Recomendaciones</h2><p>' + escapeHtml(r.recomendaciones).replace(/\n/g,'<br>') + '</p>' : ''}
+    <h2>Conformidad</h2>
+    <p>Recibido conforme por: ${escapeHtml(r.conformidad || '_______________________')}</p>
+    <p style="margin-top:8px;color:#106b3c;font-weight:bold;">✔ Validado por ${escapeHtml(r.validado_por || 'Grupo Ingeproyect')}${r.fecha_validacion ? ' el ' + fmtDate(r.fecha_validacion) : ''}</p>
+    <br><button onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+    </body></html>
+  `;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+}
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -176,6 +245,14 @@ async function ingresarPortal(cliente){
     <tr><td>${escapeHtml(t.descripcion)}</td><td>${fmtDate(t.fecha)}</td>
     <td><span class="badge ${t.estado}">${escapeHtml(t.estado || '')}</span></td></tr>
   `).join('') : '<tr class="empty-row"><td colspan="3">Aún no registramos mantenciones para tu cuenta.</td></tr>';
+
+  const informes = await listarInformesValidados(cliente.id);
+  const ibody = document.getElementById('informesBody');
+  ibody.innerHTML = informes.length ? informes.map(r => `
+    <tr><td>${escapeHtml(r.numero || '—')}</td><td>${escapeHtml(r.titulo)}</td><td>${fmtDate(r.fecha)}</td>
+    <td><button class="btn btn-primary" style="padding:6px 14px;font-size:13px;" data-ver-informe="${r.id}">Ver</button></td></tr>
+  `).join('') : '<tr class="empty-row"><td colspan="4">Aún no hay informes de servicio publicados.</td></tr>';
+  ibody.querySelectorAll('[data-ver-informe]').forEach(b => b.addEventListener('click', () => verInformeCliente(b.dataset.verInforme, informes)));
 }
 
 async function intentarLogin(){
