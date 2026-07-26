@@ -1241,7 +1241,7 @@ function verCotizacion(id, rowsCache){
   const clienteNombre = q.clientes ? q.clientes.nombre : '—';
   const materiales = Array.isArray(q.materiales) ? q.materiales : [];
   const html = `
-    <html><head><title>Cotización ${escapeHtml(q.numero || '')}</title>
+    <html><head><meta charset="UTF-8"><title>Cotización ${escapeHtml(q.numero || '')}</title>
     <style>
       body{font-family:Arial,sans-serif;color:#1c2b36;max-width:760px;margin:40px auto;padding:0 20px;}
       h1{font-size:20px;color:#0b2437;border-bottom:3px solid #ff7a30;padding-bottom:10px;}
@@ -1422,7 +1422,7 @@ function verInforme(id, rowsCache){
   const materiales = Array.isArray(r.materiales) ? r.materiales : [];
   const totalMateriales = materiales.reduce((s,m) => s + ((Number(m.cantidad)||0) * (Number(m.costo_unitario)||0)), 0);
   const html = `
-    <html><head><title>Informe ${escapeHtml(r.numero || '')} - ${escapeHtml(r.titulo)}</title>
+    <html><head><meta charset="UTF-8"><title>Informe ${escapeHtml(r.numero || '')} - ${escapeHtml(r.titulo)}</title>
     <style>
       body{font-family:Arial,sans-serif;color:#1c2b36;max-width:760px;margin:40px auto;padding:0 20px;}
       h1{font-size:20px;color:#0b2437;border-bottom:3px solid #ff7a30;padding-bottom:10px;}
