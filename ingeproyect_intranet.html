@@ -1255,6 +1255,10 @@ function verCotizacion(id, rowsCache){
       .letterhead img{width:52px;height:52px;border-radius:12px;flex-shrink:0;}
       .letterhead .name{font-weight:800;font-size:17px;color:#0b2437;}
       .letterhead .tag{font-size:11.5px;color:#5b7080;text-transform:uppercase;letter-spacing:.03em;}
+      .accept-box{background:#fff7f0;border:1.5px solid #ffd9b8;border-radius:10px;padding:16px 20px;margin-top:22px;font-size:13.5px;}
+      .accept-box b{display:block;color:#0b2437;font-size:14.5px;margin-bottom:6px;}
+      .accept-box p{margin:4px 0;}
+      .accept-box a{color:#ff7a30;text-decoration:none;font-weight:600;}
       @media print{ button{display:none;} }
     </style></head><body>
     <div class="letterhead">
@@ -1279,6 +1283,12 @@ function verCotizacion(id, rowsCache){
     <h2>Condiciones comerciales</h2>
     <p>${escapeHtml(q.condiciones_pago || 'A convenir')}</p>
     <div class="total">Valor total cotizado: ${fmtMoney(q.monto)}</div>
+    <div class="accept-box">
+      <b>¿Aceptas esta propuesta?</b>
+      <p>Contáctanos y coordinamos la ejecución del servicio:</p>
+      <p>📧 <a href="mailto:Contacto@ingeproyect.cl">Contacto@ingeproyect.cl</a> &nbsp;·&nbsp; 📱 <a href="https://wa.me/56995354956">+56 9 9535 4956</a></p>
+      <p>👷 Representante: José Luis Sanhueza Castro</p>
+    </div>
     <br><button onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
     </body></html>
   `;
