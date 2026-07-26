@@ -211,6 +211,12 @@ function verInformeCliente(id, rowsCache){
     <p>${escapeHtml(r.contenido || '—').replace(/\n/g,'<br>')}</p>
     ${r.mediciones ? '<h2>Mediciones / parámetros técnicos</h2><p>' + escapeHtml(r.mediciones).replace(/\n/g,'<br>') + '</p>' : ''}
     ${r.recomendaciones ? '<h2>Recomendaciones</h2><p>' + escapeHtml(r.recomendaciones).replace(/\n/g,'<br>') + '</p>' : ''}
+    ${(Array.isArray(r.fotos) && r.fotos.length) ? `<h2>Fotos antes / después</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div><b style="font-size:11px;color:#5b7080;text-transform:uppercase;">Antes</b>${r.fotos.filter(f=>f.tipo==='antes').map(f=>`<img src="${f.url}" style="width:100%;border-radius:8px;margin-top:6px;">`).join('') || '<p style="font-size:12.5px;color:#5b7080;">Sin foto</p>'}</div>
+      <div><b style="font-size:11px;color:#5b7080;text-transform:uppercase;">Después</b>${r.fotos.filter(f=>f.tipo==='despues').map(f=>`<img src="${f.url}" style="width:100%;border-radius:8px;margin-top:6px;">`).join('') || '<p style="font-size:12.5px;color:#5b7080;">Sin foto</p>'}</div>
+    </div>` : ''}
+    ${r.video_url ? '<h2>Video</h2><video src="' + r.video_url + '" controls style="width:100%;border-radius:8px;"></video>' : ''}
     <h2>Conformidad</h2>
     <p>Recibido conforme por: ${escapeHtml(r.conformidad || '_______________________')}</p>
     <p style="margin-top:8px;color:#106b3c;font-weight:bold;">✔ Validado por ${escapeHtml(r.validado_por || 'Grupo Ingeproyect')}${r.fecha_validacion ? ' el ' + fmtDate(r.fecha_validacion) : ''}</p>

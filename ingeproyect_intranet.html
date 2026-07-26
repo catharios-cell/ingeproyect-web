@@ -935,8 +935,15 @@ function filaReporte(r, conCliente){
 function cablearFilaReporte(tbody, rows, refrescar){
   tbody.querySelectorAll('[data-ver-informe]').forEach(b => b.addEventListener('click', () => verInforme(b.dataset.verInforme, rows)));
   tbody.querySelectorAll('[data-validar]').forEach(b => b.addEventListener('click', async () => {
+    const row = rows.find(r => r.id === b.dataset.validar);
     const nombre = prompt('¿Quién valida este informe?', 'José Luis Sanhueza') || 'José Luis Sanhueza';
-    await updateReporte(b.dataset.validar, { estado_validacion: 'validado', validado_por: nombre, fecha_validacion: new Date().toISOString().slice(0,10) });
+    let valor = row ? row.valor_total : null;
+    if (!valor){
+      const ingresado = prompt('Este informe llegó sin valor asignado. Ingresa el valor del servicio ($):', '');
+      if (!ingresado || Number(ingresado) <= 0){ alert('Debes ingresar el valor del servicio antes de validar y publicar.'); return; }
+      valor = Number(ingresado);
+    }
+    await updateReporte(b.dataset.validar, { estado_validacion: 'validado', validado_por: nombre, fecha_validacion: new Date().toISOString().slice(0,10), valor_total: valor });
     refrescar();
   }));
   tbody.querySelectorAll('[data-rechazar]').forEach(b => b.addEventListener('click', async () => {
@@ -1072,6 +1079,12 @@ function verInforme(id, rowsCache){
     <p>${escapeHtml(r.contenido || '—').replace(/\n/g,'<br>')}</p>
     ${r.mediciones ? '<h2>Mediciones / parámetros técnicos</h2><p>' + escapeHtml(r.mediciones).replace(/\n/g,'<br>') + '</p>' : ''}
     ${r.recomendaciones ? '<h2>Recomendaciones</h2><p>' + escapeHtml(r.recomendaciones).replace(/\n/g,'<br>') + '</p>' : ''}
+    ${(Array.isArray(r.fotos) && r.fotos.length) ? `<h2>Fotos antes / después</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div><b style="font-size:11px;color:#5b7080;text-transform:uppercase;">Antes</b>${r.fotos.filter(f=>f.tipo==='antes').map(f=>`<img src="${f.url}" style="width:100%;border-radius:8px;margin-top:6px;">`).join('') || '<p style="font-size:12.5px;color:#5b7080;">Sin foto</p>'}</div>
+      <div><b style="font-size:11px;color:#5b7080;text-transform:uppercase;">Después</b>${r.fotos.filter(f=>f.tipo==='despues').map(f=>`<img src="${f.url}" style="width:100%;border-radius:8px;margin-top:6px;">`).join('') || '<p style="font-size:12.5px;color:#5b7080;">Sin foto</p>'}</div>
+    </div>` : ''}
+    ${r.video_url ? '<h2>Video</h2><video src="' + r.video_url + '" controls style="width:100%;border-radius:8px;"></video>' : ''}
     ${materiales.length ? `<h2>Materiales y repuestos utilizados</h2>
     <table><tr><th>Ítem</th><th>Cantidad</th><th>Costo unitario</th><th>Subtotal</th></tr>
     ${materiales.map(m => `<tr><td>${escapeHtml(m.item)}</td><td>${escapeHtml(m.cantidad)}</td><td>${fmtMoney(m.costo_unitario)}</td><td>${fmtMoney((Number(m.cantidad)||0)*(Number(m.costo_unitario)||0))}</td></tr>`).join('')}

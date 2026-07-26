@@ -63,6 +63,14 @@
 
   .section-label{font-size:12px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin:16px 0 10px;}
 
+  input[type=file]{border:1.5px dashed var(--line);border-radius:10px;padding:10px 8px;background:#fbfcfd;font-size:13px;}
+  .foto-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  .foto-preview img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line);}
+  .foto-preview video{max-width:160px;border-radius:8px;border:1px solid var(--line);}
+  .foto-gallery{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;}
+  .foto-gallery .col b{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;}
+  .foto-gallery .col img{width:100%;border-radius:10px;margin-bottom:6px;border:1px solid var(--line);}
+
   nav.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;z-index:20;}
   nav.bottom-nav button{flex:1;background:none;border:none;padding:10px 4px 12px;font-size:11px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;width:auto;}
   nav.bottom-nav button .ic{font-size:19px;}
@@ -76,7 +84,8 @@
   .detail-sheet .sub{color:var(--muted);font-size:13px;margin-bottom:14px;}
   .detail-grid div{font-size:13.5px;margin-bottom:8px;}
   .detail-grid b{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
-  .detail-actions{display:flex;gap:10px;margin-top:16px;}
+  .detail-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+  .detail-actions .btn{flex:1;width:auto;}
 </style>
 </head>
 <body>
@@ -130,9 +139,27 @@
       <div id="materialesRowsApp"></div>
       <button type="button" class="btn btn-ghost btn-sm" id="btnAgregarMaterialApp" style="margin-bottom:14px;">＋ Agregar</button>
       <div class="field"><label>Horas trabajadas</label><input type="number" id="nHoras" step="0.5"></div>
-      <div class="field"><label>Valor del servicio ($) (si corresponde)</label><input type="number" id="nValorTotal"></div>
+      <div style="font-size:12px;color:var(--muted);background:var(--bg);padding:10px 12px;border-radius:8px;margin:-2px 0 14px;">💲 El valor del servicio lo completa José Luis Sanhueza al validar este informe. No es necesario ingresarlo aquí.</div>
       <div class="field"><label>Recomendaciones</label><textarea id="nRecomendaciones" rows="2"></textarea></div>
       <div class="field"><label>Recibido conforme por (cliente en terreno)</label><input type="text" id="nConformidad"></div>
+
+      <div class="section-label">Fotos y video (antes / después)</div>
+      <div class="field">
+        <label>Fotos "antes" (antes de intervenir)</label>
+        <input type="file" id="nFotosAntes" accept="image/*" capture="environment" multiple>
+        <div id="previewAntes" class="foto-preview"></div>
+      </div>
+      <div class="field">
+        <label>Fotos "después" (trabajo terminado)</label>
+        <input type="file" id="nFotosDespues" accept="image/*" capture="environment" multiple>
+        <div id="previewDespues" class="foto-preview"></div>
+      </div>
+      <div class="field">
+        <label>Video (opcional)</label>
+        <input type="file" id="nVideo" accept="video/*" capture="environment">
+        <div id="previewVideo" class="foto-preview"></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);background:var(--bg);padding:10px 12px;border-radius:8px;margin:-2px 0 14px;">📷 Estas fotos y el video quedarán adjuntos al informe para el cliente, mostrando el estado antes y después del servicio.</div>
 
       <button class="btn btn-primary" id="btnEnviarReporte" style="margin-top:6px;">Guardar y enviar a validación</button>
     </section>
@@ -273,6 +300,57 @@ async function listPorValidar(){
   return data;
 }
 
+// ---- Fotos y video ----
+function leerArchivoComoDataURL(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+async function subirArchivo(file, carpeta){
+  if (MODO_DEMO) return await leerArchivoComoDataURL(file);
+  const c = await getClient();
+  const path = `${carpeta}/${Date.now()}-${file.name}`;
+  const { error } = await c.storage.from('reportes-fotos').upload(path, file, { upsert: true });
+  if (error) throw error;
+  const { data } = c.storage.from('reportes-fotos').getPublicUrl(path);
+  return data.publicUrl;
+}
+async function procesarFotos(fileList, tipo){
+  const out = [];
+  for (const file of fileList){
+    const url = await subirArchivo(file, 'fotos-' + tipo);
+    out.push({ tipo, url, nombre: file.name });
+  }
+  return out;
+}
+function previsualizarFotos(inputId, previewId){
+  document.getElementById(inputId).addEventListener('change', (e) => {
+    const wrap = document.getElementById(previewId);
+    wrap.innerHTML = '';
+    Array.from(e.target.files).forEach(file => {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      wrap.appendChild(img);
+    });
+  });
+}
+previsualizarFotos('nFotosAntes', 'previewAntes');
+previsualizarFotos('nFotosDespues', 'previewDespues');
+document.getElementById('nVideo').addEventListener('change', (e) => {
+  const wrap = document.getElementById('previewVideo');
+  wrap.innerHTML = '';
+  const file = e.target.files[0];
+  if (file){
+    const video = document.createElement('video');
+    video.src = URL.createObjectURL(file);
+    video.controls = true;
+    wrap.appendChild(video);
+  }
+});
+
 // ---- Login ----
 async function intentarLogin(){
   const u = document.getElementById('loginUser').value.trim();
@@ -354,36 +432,57 @@ document.getElementById('btnEnviarReporte').addEventListener('click', async () =
   if (!titulo) { mostrarToast('⚠ El título es obligatorio.'); return; }
   if (!contenido) { mostrarToast('⚠ Describe el trabajo realizado.'); return; }
 
-  await createReporte({
-    cliente_id: clienteId,
-    numero: document.getElementById('nNumero').value.trim(),
-    titulo,
-    tipo_servicio: document.getElementById('nTipoServicio').value,
-    equipo: document.getElementById('nEquipo').value.trim(),
-    ubicacion: document.getElementById('nUbicacion').value.trim(),
-    fecha: document.getElementById('nFecha').value || null,
-    fecha_inicio: document.getElementById('nFecha').value || null,
-    contenido,
-    materiales: leerMaterialesApp(),
-    horas: document.getElementById('nHoras').value ? Number(document.getElementById('nHoras').value) : null,
-    valor_total: document.getElementById('nValorTotal').value ? Number(document.getElementById('nValorTotal').value) : null,
-    recomendaciones: document.getElementById('nRecomendaciones').value.trim(),
-    conformidad: document.getElementById('nConformidad').value.trim(),
-    tecnico: trabajadorActivo.nombre,
-    trabajador_id: trabajadorActivo.id,
-    estado_validacion: 'pendiente',
-    validado_por: null,
-    fecha_validacion: null,
-    estado_facturacion: 'pendiente',
-    estado_final: 'aprobado'
-  });
+  const btn = document.getElementById('btnEnviarReporte');
+  const textoOriginal = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Subiendo fotos y video...';
+  try {
+    const fotosAntes = await procesarFotos(document.getElementById('nFotosAntes').files, 'antes');
+    const fotosDespues = await procesarFotos(document.getElementById('nFotosDespues').files, 'despues');
+    const videoFile = document.getElementById('nVideo').files[0];
+    const videoUrl = videoFile ? await subirArchivo(videoFile, 'videos') : null;
 
-  ['nNumero','nTitulo','nEquipo','nUbicacion','nContenido','nHoras','nValorTotal','nRecomendaciones','nConformidad'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('nTipoServicio').selectedIndex = 0;
-  document.getElementById('materialesRowsApp').innerHTML = '';
-  document.getElementById('nFecha').value = new Date().toISOString().slice(0,10);
-  mostrarSeccion('mis');
-  mostrarToast('✔ Reporte enviado. Quedará visible para el cliente una vez que sea validado.');
+    await createReporte({
+      cliente_id: clienteId,
+      numero: document.getElementById('nNumero').value.trim(),
+      titulo,
+      tipo_servicio: document.getElementById('nTipoServicio').value,
+      equipo: document.getElementById('nEquipo').value.trim(),
+      ubicacion: document.getElementById('nUbicacion').value.trim(),
+      fecha: document.getElementById('nFecha').value || null,
+      fecha_inicio: document.getElementById('nFecha').value || null,
+      contenido,
+      materiales: leerMaterialesApp(),
+      horas: document.getElementById('nHoras').value ? Number(document.getElementById('nHoras').value) : null,
+      valor_total: null,
+      recomendaciones: document.getElementById('nRecomendaciones').value.trim(),
+      conformidad: document.getElementById('nConformidad').value.trim(),
+      tecnico: trabajadorActivo.nombre,
+      trabajador_id: trabajadorActivo.id,
+      estado_validacion: 'pendiente',
+      validado_por: null,
+      fecha_validacion: null,
+      estado_facturacion: 'pendiente',
+      estado_final: 'aprobado',
+      fotos: [...fotosAntes, ...fotosDespues],
+      video_url: videoUrl
+    });
+
+    ['nNumero','nTitulo','nEquipo','nUbicacion','nContenido','nHoras','nRecomendaciones','nConformidad'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('nTipoServicio').selectedIndex = 0;
+    document.getElementById('materialesRowsApp').innerHTML = '';
+    ['nFotosAntes','nFotosDespues','nVideo'].forEach(id => document.getElementById(id).value = '');
+    ['previewAntes','previewDespues','previewVideo'].forEach(id => document.getElementById(id).innerHTML = '');
+    document.getElementById('nFecha').value = new Date().toISOString().slice(0,10);
+    mostrarSeccion('mis');
+    mostrarToast('✔ Reporte enviado. Quedará visible para el cliente una vez que sea validado.');
+  } catch (err) {
+    console.error(err);
+    mostrarToast('⚠ Ocurrió un error al subir las fotos/video. Intenta de nuevo.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = textoOriginal;
+  }
 });
 
 function mostrarToast(msg){
@@ -446,21 +545,37 @@ function verDetalle(id, rowsCache, conAcciones){
     <div><b>Fecha</b>${fmtDate(r.fecha)}</div>
     <div><b>Técnico</b>${escapeHtml(r.tecnico || '—')}</div>
     <div><b>Horas</b>${r.horas ?? '—'}</div>
-    <div><b>Valor</b>${fmtMoney(r.valor_total)}</div>
+    <div><b>Valor</b>${r.valor_total ? fmtMoney(r.valor_total) : '<span style="color:var(--muted);">Pendiente de asignar</span>'}</div>
   `;
+  const fotos = Array.isArray(r.fotos) ? r.fotos : [];
+  const fotosAntes = fotos.filter(f => f.tipo === 'antes');
+  const fotosDespues = fotos.filter(f => f.tipo === 'despues');
   document.getElementById('dContenidoWrap').innerHTML = `
     <div class="section-label" style="margin-top:14px;">Diagnóstico y trabajo realizado</div>
     <div style="font-size:13.5px;">${escapeHtml(r.contenido || '—').replace(/\n/g,'<br>')}</div>
     ${r.recomendaciones ? '<div class="section-label">Recomendaciones</div><div style="font-size:13.5px;">' + escapeHtml(r.recomendaciones).replace(/\n/g,'<br>') + '</div>' : ''}
+    ${(fotosAntes.length || fotosDespues.length) ? `
+      <div class="section-label">Fotos antes / después</div>
+      <div class="foto-gallery">
+        <div class="col"><b>Antes</b>${fotosAntes.length ? fotosAntes.map(f => `<img src="${f.url}">`).join('') : '<span style="color:var(--muted);font-size:12.5px;">Sin foto</span>'}</div>
+        <div class="col"><b>Después</b>${fotosDespues.length ? fotosDespues.map(f => `<img src="${f.url}">`).join('') : '<span style="color:var(--muted);font-size:12.5px;">Sin foto</span>'}</div>
+      </div>` : ''}
+    ${r.video_url ? `<div class="section-label">Video</div><video src="${r.video_url}" controls style="width:100%;border-radius:10px;"></video>` : ''}
   `;
   const actions = document.getElementById('dActions');
   if (conAcciones && r.estado_validacion === 'pendiente'){
     actions.innerHTML = `
+      <div class="field" style="width:100%;">
+        <label>Valor del servicio ($) *</label>
+        <input type="number" id="dValorTotal" value="${r.valor_total ?? ''}" placeholder="Completa el valor antes de publicar">
+      </div>
       <button class="btn btn-primary" id="btnValidarDetalle">✔ Validar y publicar</button>
       <button class="btn btn-ghost" id="btnRechazarDetalle" style="color:var(--red);">Rechazar</button>
     `;
     document.getElementById('btnValidarDetalle').addEventListener('click', async () => {
-      await updateReporte(r.id, { estado_validacion: 'validado', validado_por: trabajadorActivo.nombre, fecha_validacion: new Date().toISOString().slice(0,10) });
+      const valorInput = document.getElementById('dValorTotal').value;
+      if (!valorInput || Number(valorInput) <= 0){ mostrarToast('⚠ Ingresa el valor del servicio antes de publicar.'); return; }
+      await updateReporte(r.id, { estado_validacion: 'validado', validado_por: trabajadorActivo.nombre, fecha_validacion: new Date().toISOString().slice(0,10), valor_total: Number(valorInput) });
       cerrarDetalle();
       renderPorValidar();
     });
